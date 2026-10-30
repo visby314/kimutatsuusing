@@ -378,6 +378,7 @@ body.reading{overflow:hidden}
 .rrow .rb{padding:7px 12px;font-size:.8rem}
 .rrow .spd input{width:120px}
 .rrec.on{color:#fff;background:var(--bad);border-color:var(--bad)}
+@media (min-width:900px){.pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -480,7 +481,7 @@ body.reading{overflow:hidden}
         <details class="card" id="segEditBox">
           <summary class="sumtitle">文の区切りを直す</summary>
           <p class="note">区切りは無音のところで自動で付けています。ずれていたら、再生を止めた位置で「ここで区切る」、短すぎる文は「次とつなげる」で直せます。</p>
-          <div class="tools"><button type="button" class="tool" id="segSplit">ここで区切る</button><button type="button" class="tool" id="segMerge">いまの文を次とつなげる</button><button type="button" class="tool danger" id="segReset">自動の区切りに戻す</button></div>
+          <div class="tools"><button type="button" class="tool" id="segSplit">ここで区切る</button><button type="button" class="tool" id="segMerge">いまの文を次とつなげる</button><button type="button" class="tool" id="segRealign">スクリプトに合わせてそろえ直す</button><button type="button" class="tool danger" id="segReset">自動の区切りに戻す</button></div>
           <ol class="seglist" id="segList"></ol>
         </details>
       </div>
@@ -929,18 +930,79 @@ body.reading{overflow:hidden}
   $('scriptText').addEventListener('input', countNote);
   $('scriptEdit').addEventListener('click', countNote);
   $('scriptTidy').addEventListener('click', () => { $('scriptText').value = tidyScript($('scriptText').value).join('\n'); countNote(); });
-  $('scriptSave').addEventListener('click', () => {
-    const lines = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean); const d = tdata(cur.id);
-    let msg = '';
-    if (lines.length && lines.length !== segs.length) {
-      const r = alignBest(lines.filter(l => l !== SKIP), segs);
-      if (r.skipped) msg = `はじめか終わりの${r.skipped}こは、スクリプトにない読み上げ（タイトルや指示）として外しました。`;
-      if (r.segs !== segs) { segs = r.segs.map(x => x.slice()); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); renderTicks(); renderSegList(); if (segs.length !== r.lines.length || !msg) msg += `文の数に合わせて、音声の区切りを${segs.length}こにそろえました。`; }
-      else msg = `音声の区切り（${segs.length}こ）より文が多いので、近い文どうしを1行にまとめました。`;
-      d.script = r.lines.join('\n');
+  // 短い無音（pauses）を区切りの候補にして、スクリプトの1文ごとに区切り直す。
+  // 文の語数の割合と、話している時間（無音を除く）の割合が近く、しかも長めの無音で切れる位置を選ぶ。
+  // はじめと終わりの読み上げ（タイトルや指示）は、外したほうが1秒あたりの語数がそろうなら外す
+  function alignPauses(lines, t){
+    const P = (t.pauses || []).map(p => p.slice()), dur = t.dur;
+    if (!P.length || !lines.length) return null;
+    const W = lines.map(l => Math.max(1, words(l).length)), K = W.length;
+    const S = x => { let v = x; for (const [a, b] of P) { if (b <= x) v -= b - a; else if (a < x) v -= x - a; } return v; };
+    const C = P.filter(([a, b]) => a > 0.05 && b < dur - 0.05).map(([a, b]) => ({a, b, m: (a + b) / 2, L: b - a}));
+    const lead = P[0][0] < 0.05 ? P[0][1] : 0, tail = P[P.length - 1][1] > dur - 0.05 ? P[P.length - 1][0] : dur;
+    const starts = [{x: lead, i: -1}].concat(C.slice(0, 3).map((c, i) => ({x: c.m, i})));
+    const ends = [{x: tail, i: C.length}].concat(C.slice(-3).map((c, k) => ({x: c.m, i: C.length - Math.min(3, C.length) + k})));
+    const sig = 1.2, lam = 1.5, cw = [0]; W.forEach(w => cw.push(cw[cw.length - 1] + w));
+    let best = null;
+    for (const st of starts) for (const en of ends) {
+      if (en.i <= st.i) continue;
+      const cs = C.filter((c, idx) => idx > st.i && idx < en.i), M = cs.length;
+      if (M < K - 1) continue;
+      const S0 = S(st.x), S1 = S(en.x), tot = S1 - S0; if (tot <= 0) continue;
+      const exp = cw.map(c => S0 + tot * c / cw[K]), Sc = cs.map(c => S(c.m)), bonus = cs.map(c => lam * Math.log(Math.max(0.05, c.L)));
+      let cuts = [];
+      if (K > 1) {
+        const INF = 1e18, from = []; let prev = Sc.map((s, m) => ((s - exp[1]) / sig) ** 2 - bonus[m]);
+        for (let j = 2; j < K; j++) {
+          const cur = new Array(M).fill(INF), fr = new Array(M).fill(0); let bp = INF, bi = 0;
+          for (let m = 0; m < M; m++) {
+            if (m > 0 && prev[m - 1] < bp) { bp = prev[m - 1]; bi = m - 1; }
+            if (bp < INF) { cur[m] = bp + ((Sc[m] - exp[j]) / sig) ** 2 - bonus[m]; fr[m] = bi; }
+          }
+          from[j] = fr; prev = cur;
+        }
+        let m = 0; for (let x = 1; x < M; x++) if (prev[x] < prev[m]) m = x;
+        if (!(prev[m] < INF)) continue;
+        cuts = [m]; for (let j = K - 1; j >= 2; j--) { m = from[j][m]; cuts.unshift(m); }
+      }
+      const sAt = [st.i < 0 ? st.x : C[st.i].b].concat(cuts.map(k => cs[k].b));
+      const eAt = cuts.map(k => cs[k].a).concat([en.i >= C.length ? en.x : C[en.i].a]);
+      const rates = W.map((w, j) => w / Math.max(0.3, S(eAt[j]) - S(sAt[j])));
+      const mu = rates.reduce((a, b) => a + b, 0) / K, cv = Math.sqrt(rates.reduce((a, b) => a + (b - mu) ** 2, 0) / K) / mu;
+      const score = cv + (st.i >= 0 ? 0.03 : 0) + (en.i < C.length ? 0.03 : 0);
+      if (!best || score < best.score) best = {score, sAt, eAt, skipS: st.i >= 0 ? [lead, C[st.i].a] : null, skipE: en.i < C.length ? [C[en.i].b, tail] : null};
+    }
+    if (!best) return null;
+    const PAD = 0.08, cl = x => Math.round(Math.max(0, Math.min(dur, x)) * 100) / 100, outL = [], outS = [];
+    if (best.skipS) { outL.push(SKIP); outS.push([cl(best.skipS[0] - PAD), cl(best.skipS[1] + PAD)]); }
+    lines.forEach((l, j) => { outL.push(l); outS.push([cl(best.sAt[j] - PAD), cl(best.eAt[j] + PAD)]); });
+    if (best.skipE) { outL.push(SKIP); outS.push([cl(best.skipE[0] - PAD), cl(best.skipE[1] + PAD)]); }
+    return {lines: outL, segs: outS, skipped: (best.skipS ? 1 : 0) + (best.skipE ? 1 : 0)};
+  }
+  // スクリプトに合わせて区切り直して保存する（保存のときと、ボタンで直すときに使う）
+  function applyScript(lines){
+    const d = tdata(cur.id), body = lines.filter(l => l !== SKIP); let msg = '';
+    const r = cur.pauses ? alignPauses(body, cur) : null;
+    if (r) {
+      segs = r.segs.map(x => x.slice()); d.segs = r.segs; d.segsAt = now(); d.script = r.lines.join('\n');
+      msg = `スクリプトの${body.length}文に合わせて、音声の短い切れ目で区切り直しました。` + (r.skipped ? `はじめか終わりの読み上げ（タイトルや指示）を${r.skipped}こ外しています。` : '');
+    } else if (lines.length && lines.length !== segs.length) {
+      const q = alignBest(body, segs);
+      if (q.segs !== segs) { segs = q.segs.map(x => x.slice()); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); }
+      d.script = q.lines.join('\n'); msg = `文の数に合わせて、音声の区切りを${segs.length}こにそろえました。`;
     } else d.script = lines.join('\n');
-    d.scriptAt = now(); changed(); $('scriptEditor').hidden = true; renderScript(); renderSv(); if (!$('reader').hidden) renderReader();
+    d.scriptAt = now(); changed(); renderTicks(); renderSegList(); renderScript(); renderSv(); lastSeg = -1; render(); if (!$('reader').hidden) renderReader();
+    return msg;
+  }
+  $('scriptSave').addEventListener('click', () => {
+    const lines = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean);
+    $('scriptEditor').hidden = true;
+    const msg = applyScript(lines);
     $('pMsg').textContent = msg ? msg + 'ずれていたら、スクリプトの行を押して聞きながら「文の区切りを直す」で直してください。' : '';
+  });
+  $('segRealign').addEventListener('click', () => {
+    const lines = scriptLines(); if (!lines.length) { $('pMsg').textContent = 'スクリプトがまだありません。'; return; }
+    $('pMsg').textContent = applyScript(lines) || 'そろえ直しました。';
   });
 
   // ---------- 書き起こし ----------
