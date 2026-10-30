@@ -618,7 +618,7 @@ body.reading{overflow:hidden}
     for (const id of ids) {
       const x = (a.tracks || {})[id] || {}, y = (b.tracks || {})[id] || {}, o = {};
       for (const [k, at] of [['segs', 'segsAt'], ['script', 'scriptAt'], ['dict', 'dictAt']]) {
-        const w = (y[at] || '') > (x[at] || '') ? y : x; if (w[k] !== undefined) { o[k] = w[k]; o[at] = w[at]; }
+        const w = (y[at] || '') > (x[at] || '') ? y : x; if (w[k] !== undefined) { o[k] = w[k]; o[at] = w[at]; if (k === 'segs' && w.alignVer) o.alignVer = w.alignVer; }
       }
       out.tracks[id] = o;
     }
@@ -885,14 +885,14 @@ body.reading{overflow:hidden}
   const splitSpeakers = s => s.replace(/\s+((?:[A-Z][a-z]{0,12}|[A-Z]{1,2}|Speaker\s?\d)\s?:)\s/g, '\n$1 ');
   function tidyScript(raw){
     let lines = raw.replace(/\r/g, '').split('\n').map(l => l.replace(/[ \s]+/g, ' ').trim()).filter(Boolean);
-    lines = lines.map(l => l.replace(/^(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.．、:：)）]|\[\d{1,3}\]|[①-⑳]|(?:Q|No\.?)\s*\d{1,3}\s*[.:：)]?)\s*/i, '')).filter(l => l && !/^\d{1,4}$/.test(l));
+    lines = lines.map(l => l.replace(/^(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.．、:：)）]|\[\d{1,3}\]|[①-⑳㉑-㉟㊱-㊿]|(?:Q|No\.?)\s*\d{1,3}\s*[.:：)]?)\s*/i, '')).filter(l => l && !/^\d{1,4}$/.test(l));
     let text = lines.join(' ').replace(/(\w)-\s+(\w)/g, '$1$2'); // 行末のハイフンで切れた語をつなぐ
     // 文の途中の (1)（1）[1] ① などの印は、位置にかかわらず消す（数字1〜2けたのものだけ。(1990) のような年は残す）
-    text = text.replace(/\s*[(（［\[]\s*\d{1,2}\s*[)）］\]]\s*/g, ' ').replace(/\s*[①-⑳]\s*/g, ' ').replace(/ {2,}/g, ' ').replace(/ ([,.?!;:])/g, '$1');
+    text = text.replace(/\s*[(（［\[]\s*\d{1,2}\s*[)）］\]]\s*/g, ' ').replace(/\s*[①-⑳㉑-㉟㊱-㊿]\s*/g, ' ').replace(/ {2,}/g, ' ').replace(/ ([,.?!;:])/g, '$1');
     text = text.replace(ABBR, m => m.replace(/\./g, '§'));
     text = text.replace(/([.?!]["”’)]?)\s+(?=["“‘(]?[A-Z0-9])/g, '$1\n');
     text = splitSpeakers(text);
-    return text.split('\n').map(s => s.replace(/§/g, '.').replace(/^(?:\(\s*\d{1,2}\s*\)|[①-⑳])\s*/, '').trim()).filter(Boolean);
+    return text.split('\n').map(s => s.replace(/§/g, '.').replace(/^(?:\(\s*\d{1,2}\s*\)|[①-⑳㉑-㉟㊱-㊿])\s*/, '').trim()).filter(Boolean);
   }
   // 文と音声の区切りをそろえる。文の長さ（語数）と区切りの長さ（秒）の割合が近くなる境目を選ぶ
   function align(lines, sg){
@@ -938,51 +938,48 @@ body.reading{overflow:hidden}
   $('scriptText').addEventListener('input', countNote);
   $('scriptEdit').addEventListener('click', countNote);
   $('scriptTidy').addEventListener('click', () => { $('scriptText').value = tidyScript($('scriptText').value).join('\n'); countNote(); });
-  // 短い無音（pauses）を区切りの候補にして、スクリプトの1文ごとに区切り直す。
-  // 文の語数の割合と、話している時間（無音を除く）の割合が近く、しかも長めの無音で切れる位置を選ぶ。
-  // はじめと終わりの読み上げ（タイトルや指示）は、外したほうが1秒あたりの語数がそろうなら外す
+  // スクリプトの1文ごとに区切り直す。区切りの候補は、音声の短い切れ目（-30dBで0.06秒以上、manifest の pauses）。
+  // 1文の長さは音節の数から見込み、実際に話している時間（切れ目を除く）との比がそろうように選ぶ。長めの切れ目ほど選びやすくする。
+  // 最初のトラック名の読み上げは必ず外し、そのほかの読み上げ（指示など）は、外したほうがそろうときだけ外す
+  const syl = w => /^\d/.test(w) ? 1 + w.replace(/\D/g, '').length * 1.2 : Math.max(1, (w.match(/[aeiouy]+/g) || []).length - (/[^aeiou]e$/.test(w) && w.length > 3 ? 1 : 0));
   function alignPauses(lines, t){
+    const sig = 0.35, lam = 1, pen = 0.6;
     const P = (t.pauses || []).map(p => p.slice()), dur = t.dur;
     if (!P.length || !lines.length) return null;
-    const W = lines.map(l => Math.max(1, words(l).length)), K = W.length;
+    const W = lines.map(l => Math.max(1, words(l).reduce((a, w) => a + syl(w), 0))), K = W.length, WT = W.reduce((a, b) => a + b, 0);
     const S = x => { let v = x; for (const [a, b] of P) { if (b <= x) v -= b - a; else if (a < x) v -= x - a; } return v; };
     const C = P.filter(([a, b]) => a > 0.05 && b < dur - 0.05).map(([a, b]) => ({a, b, m: (a + b) / 2, L: b - a}));
     const lead = P[0][0] < 0.05 ? P[0][1] : 0, tail = P[P.length - 1][1] > dur - 0.05 ? P[P.length - 1][0] : dur;
-    // キムタツの音声は、どのトラックも最初に1.3〜1.9秒ほどトラック名を読み上げ、1秒以上あけてから本文に入る。
-    // 最初の2.5秒以内に1秒以上の無音があれば、そこまでをトラック名として必ず外す
-    const ti = C.findIndex(c => c.L >= 1.0 && c.a - lead <= 2.5);
-    const s0 = ti >= 0 ? ti : -1;
-    const starts = (s0 < 0 ? [{x: lead, i: -1}] : []).concat(C.slice(s0 + 1 > 0 ? s0 : 0, (s0 >= 0 ? s0 : 0) + 3).map((c, k) => ({x: c.m, i: (s0 >= 0 ? s0 : 0) + k})));
-    const ends = [{x: tail, i: C.length}].concat(C.slice(-3).map((c, k) => ({x: c.m, i: C.length - Math.min(3, C.length) + k})));
-    const sig = 1.2, lam = 1.5, cw = [0]; W.forEach(w => cw.push(cw[cw.length - 1] + w));
+    const ti = C.findIndex(c => c.L >= 1.0 && c.a - lead <= 2.5), s0 = ti >= 0 ? ti : -1;
+    // 外してよい候補：はじめは最初の15秒、終わりは最後の15秒にある0.2秒以上の切れ目（それぞれ最大8こ）
+    const starts = (s0 < 0 ? [{x: lead, i: -1}] : [{x: C[s0].m, i: s0}]).concat(C.map((c, i) => ({c, i})).filter(({c, i}) => i > s0 && c.L >= 0.2 && c.a - lead <= 15).slice(0, 8).map(({c, i}) => ({x: c.m, i})));
+    const ends = [{x: tail, i: C.length}].concat(C.map((c, i) => ({c, i})).filter(({c}) => c.L >= 0.2 && tail - c.b <= 15).slice(-8).map(({c, i}) => ({x: c.m, i})));
     let best = null;
     for (const st of starts) for (const en of ends) {
       if (en.i <= st.i) continue;
       const cs = C.filter((c, idx) => idx > st.i && idx < en.i), M = cs.length;
       if (M < K - 1) continue;
-      const S0 = S(st.x), S1 = S(en.x), tot = S1 - S0; if (tot <= 0) continue;
-      const exp = cw.map(c => S0 + tot * c / cw[K]), Sc = cs.map(c => S(c.m)), bonus = cs.map(c => lam * Math.log(Math.max(0.05, c.L)));
-      let cuts = [];
-      if (K > 1) {
-        const INF = 1e18, from = []; let prev = Sc.map((s, m) => ((s - exp[1]) / sig) ** 2 - bonus[m]);
-        for (let j = 2; j < K; j++) {
-          const cur = new Array(M).fill(INF), fr = new Array(M).fill(0); let bp = INF, bi = 0;
-          for (let m = 0; m < M; m++) {
-            if (m > 0 && prev[m - 1] < bp) { bp = prev[m - 1]; bi = m - 1; }
-            if (bp < INF) { cur[m] = bp + ((Sc[m] - exp[j]) / sig) ** 2 - bonus[m]; fr[m] = bi; }
-          }
-          from[j] = fr; prev = cur;
+      // 境目の位置：0 = 始まり、1..M = 候補の無音、M+1 = 終わり
+      const Sx = [S(st.x)].concat(cs.map(c => S(c.m)), [S(en.x)]), Lb = [0].concat(cs.map(c => lam * Math.log(Math.max(0.05, c.L))), [0]);
+      const rho = (Sx[M + 1] - Sx[0]) / WT; if (rho <= 0) continue;
+      const cost = (a, b, j) => { const dd = Sx[b] - Sx[a]; if (dd < 0.25) return 1e9; return (Math.log(dd / (W[j] * rho)) / sig) ** 2; };
+      const INF = 1e18; let prev = new Array(M + 2).fill(INF); const from = [];
+      for (let b = 1; b <= M + 1; b++) prev[b] = cost(0, b, 0) - (b <= M ? Lb[b] : 0);
+      for (let j = 1; j < K; j++) {
+        const cur = new Array(M + 2).fill(INF), fr = new Array(M + 2).fill(0);
+        for (let b = j + 1; b <= M + 1; b++) {
+          if (j < K - 1 && b === M + 1) continue;
+          for (let a = j; a < b; a++) { if (prev[a] >= INF) continue; const v = prev[a] + cost(a, b, j) - (b <= M ? Lb[b] : 0); if (v < cur[b]) { cur[b] = v; fr[b] = a; } }
         }
-        let m = 0; for (let x = 1; x < M; x++) if (prev[x] < prev[m]) m = x;
-        if (!(prev[m] < INF)) continue;
-        cuts = [m]; for (let j = K - 1; j >= 2; j--) { m = from[j][m]; cuts.unshift(m); }
+        from[j] = fr; prev = cur;
       }
-      const sAt = [st.i < 0 ? st.x : C[st.i].b].concat(cuts.map(k => cs[k].b));
-      const eAt = cuts.map(k => cs[k].a).concat([en.i >= C.length ? en.x : C[en.i].a]);
-      const rates = W.map((w, j) => w / Math.max(0.3, S(eAt[j]) - S(sAt[j])));
-      const mu = rates.reduce((a, b) => a + b, 0) / K, cv = Math.sqrt(rates.reduce((a, b) => a + (b - mu) ** 2, 0) / K) / mu;
-      const score = cv + (st.i > s0 ? 0.03 : 0) + (st.i >= 0 && s0 < 0 ? 0.03 : 0) + (en.i < C.length ? 0.03 : 0);
-      if (!best || score < best.score) best = {score, sAt, eAt, skipS: st.i >= 0 ? [lead, C[st.i].a] : null, skipE: en.i < C.length ? [C[en.i].b, tail] : null};
+      const total = K === 1 ? cost(0, M + 1, 0) : prev[M + 1]; if (!(total < INF)) continue;
+      const bs = [M + 1]; for (let j = K - 1; j >= 1; j--) bs.unshift(from[j][bs[0]]); bs.unshift(0);
+      const score = total / K + (st.i > s0 ? pen : 0) + (st.i >= 0 && s0 < 0 ? pen : 0) + (en.i < C.length ? pen : 0);
+      if (!best || score < best.score) {
+        const startAt = k => k === 0 ? (st.i < 0 ? st.x : C[st.i].b) : cs[k - 1].b, endAt = k => k === M + 1 ? (en.i >= C.length ? en.x : C[en.i].a) : cs[k - 1].a;
+        best = {score, sAt: lines.map((_, j) => startAt(bs[j])), eAt: lines.map((_, j) => endAt(bs[j + 1])), skipS: st.i >= 0 ? [lead, C[st.i].a] : null, skipE: en.i < C.length ? [C[en.i].b, tail] : null};
+      }
     }
     if (!best) return null;
     const PAD = 0.08, cl = x => Math.round(Math.max(0, Math.min(dur, x)) * 100) / 100, outL = [], outS = [];
@@ -992,7 +989,7 @@ body.reading{overflow:hidden}
     return {lines: outL, segs: outS, skipped: (best.skipS ? 1 : 0) + (best.skipE ? 1 : 0)};
   }
   // スクリプトに合わせて区切り直して保存する（保存のときと、ボタンで直すときに使う）
-  const ALIGN_VER = 2;
+  const ALIGN_VER = 3;
   function applyScript(lines){
     const d = tdata(cur.id), body = lines.filter(l => l !== SKIP); let msg = '';
     const r = cur.pauses ? alignPauses(body, cur) : null;
