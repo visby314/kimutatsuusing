@@ -322,6 +322,15 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
 .ttable td{text-align:center}
 .script p.skip{color:var(--muted);font-size:.85rem !important}
 .pgrid{grid-template-columns:minmax(0,1fr)}
+/* スクリプトの出し方 */
+.script{position:relative;max-height:45vh}
+.sv{margin-top:-4px}
+.nowline{background:var(--accent-soft);border-radius:10px;padding:10px 12px;min-height:3.2em}
+.nowline p{margin:0}
+.nowline .nl{font-size:1.2rem;line-height:1.6;font-weight:700;color:var(--ink)}
+.nowline .nl.skip{font-size:.9rem;color:var(--muted);font-weight:400}
+.nowline .nx{font-size:.85rem;line-height:1.5;color:var(--muted);margin-top:6px;border-top:1px dashed var(--rule);padding-top:4px}
+.nowline .note{margin:0}
 </style>
 </head>
 <body>
@@ -359,6 +368,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
           <div class="pl">
             <div class="plhead"><span id="segNo">文 1 / 1</span><b id="tNow">0:00</b><span id="tDur">/ 0:00</span></div>
             <div class="bar" id="bar" role="slider" aria-label="再生位置" tabindex="0"><div class="segs" id="segTicks"></div><i id="barFill"></i><b id="barHead"></b></div>
+            <div class="nowline" id="nowLine" hidden></div>
             <div class="ctl">
               <button type="button" class="cb" data-c="prev" aria-label="前の文">前の文</button>
               <button type="button" class="cb" data-c="back" aria-label="2秒戻る">−2秒</button>
@@ -406,6 +416,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
         <!-- スクリプト -->
         <div class="card" id="scriptBox">
           <div class="chead"><span>スクリプト</span><button type="button" class="tool sm" id="scriptEdit">貼り付け・直す</button></div>
+          <div class="minis sv" role="radiogroup" aria-label="スクリプトの出し方"><button type="button" class="mini" role="radio" data-sv="all">全文</button><button type="button" class="mini" role="radio" data-sv="now">いまの文だけ</button><button type="button" class="mini" role="radio" data-sv="off">隠す</button></div>
           <div class="script" id="script"></div>
           <div id="scriptEditor" hidden>
             <p class="note">本のスクリプトをそのまま貼り付けて「整える」を押すと、行頭の番号を消して1文1行にします。結果を見て直してから「保存する」を押すと、文の数に合わせて音声の区切りもそろえます。iPhoneなら、写真やPDFの英文を長押しして「すべてを選択」→「コピー」で文字にできます。</p>
@@ -688,7 +699,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
     $('sessNote').textContent = sess >= 1 ? `この練習 ${clock(sess)}` : '';
     const lines = scriptLines();
     if (lines.length === segs.length) document.querySelectorAll('#script p').forEach((x, i) => x.classList.toggle('now', i === segI));
-    if (lastSeg !== segI) { lastSeg = segI; if (ui.mode === 'dict') loadDict(); const n = document.querySelector('#script p.now'); if (n && playing) n.scrollIntoView({block:'nearest'}); renderSegList(); }
+    if (lastSeg !== segI) { lastSeg = segI; if (ui.mode === 'dict') loadDict(); const n = document.querySelector('#script p.now'); if (n && sv() === 'all') { const box = $('script'); box.scrollTop = Math.max(0, n.offsetTop - box.clientHeight / 3); } renderNow(); renderSegList(); }
   }
   let lastSeg = -1;
   document.querySelector('.ctl').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) control(b.dataset.c); });
@@ -747,6 +758,25 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
 
   // ---------- スクリプト ----------
   const scriptLines = () => cur ? (tdata(cur.id).script || '').split('\n').map(x => x.trim()).filter(Boolean) : [];
+  // スクリプトの出し方：全文／いまの文だけ（再生のすぐ下に出す）／隠す。やり方ごとに覚えておく
+  const SV_DEF = {shadow:'off', overlap:'now', dict:'off', read:'now'};
+  const sv = () => (ui.sv && ui.sv[ui.mode]) || SV_DEF[ui.mode];
+  function renderSv(){
+    const v = sv();
+    document.querySelectorAll('[data-sv]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.sv === v)));
+    if ($('scriptEditor').hidden) $('script').hidden = v !== 'all';
+    renderNow();
+  }
+  function renderNow(){
+    const box = $('nowLine'); if (!cur) return;
+    if (sv() !== 'now') { box.hidden = true; return; }
+    const lines = scriptLines(); box.hidden = false;
+    if (!lines.length) { box.innerHTML = '<p class="note">スクリプトがまだありません。下の「貼り付け・直す」から入れてください。</p>'; return; }
+    if (lines.length !== segs.length) { box.innerHTML = '<p class="note">スクリプトの行と文の区切りがそろうと、ここにいまの文が出ます。</p>'; return; }
+    const l = lines[segI], nx = lines[segI + 1];
+    box.innerHTML = `<p class="nl${l === SKIP ? ' skip' : ''}">${esc(l)}</p>${nx ? `<p class="nx">${esc(nx)}</p>` : ''}`;
+  }
+  document.querySelector('.sv').addEventListener('click', e => { const b = e.target.closest('[data-sv]'); if (!b) return; ui.sv = Object.assign({}, ui.sv, {[ui.mode]: b.dataset.sv}); saveUI(); renderSv(); lastSeg = -1; render(); });
   function renderScript(){
     const lines = scriptLines();
     $('script').innerHTML = lines.length ? lines.map((l, i) => `<p data-i="${i}"${l === SKIP ? ' class="skip"' : ''}>${esc(l)}</p>`).join('') + (lines.length !== segs.length ? `<p class="note">スクリプトは${lines.length}行、文の区切りは${segs.length}こなので、いまの文は光りません。行の分け方か区切りを直すとそろいます。</p>` : '')
@@ -754,7 +784,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   }
   $('script').addEventListener('click', e => { const p = e.target.closest('p[data-i]'); if (p && scriptLines().length === segs.length) playSeg(+p.dataset.i); });
   $('scriptEdit').addEventListener('click', () => { $('scriptText').value = tdata(cur.id).script || ''; $('scriptEditor').hidden = false; $('script').hidden = true; });
-  $('scriptCancel').addEventListener('click', () => { $('scriptEditor').hidden = true; $('script').hidden = false; });
+  $('scriptCancel').addEventListener('click', () => { $('scriptEditor').hidden = true; renderSv(); });
   // 貼り付けたスクリプトを整える：行頭の番号やページ番号を消し、改行で切れた文をつないで1文1行にする
   const ABBR = /\b(Mr|Mrs|Ms|Dr|St|Jr|Sr|Prof|Mt|No|vs|etc|e\.g|i\.e|U\.S|U\.K|a\.m|p\.m)\./gi;
   function tidyScript(raw){
@@ -820,7 +850,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
       else msg = `音声の区切り（${segs.length}こ）より文が多いので、近い文どうしを1行にまとめました。`;
       d.script = r.lines.join('\n');
     } else d.script = lines.join('\n');
-    d.scriptAt = now(); changed(); $('scriptEditor').hidden = true; $('script').hidden = false; renderScript();
+    d.scriptAt = now(); changed(); $('scriptEditor').hidden = true; renderScript(); renderSv();
     $('pMsg').textContent = msg ? msg + 'ずれていたら、スクリプトの行を押して聞きながら「文の区切りを直す」で直してください。' : '';
   });
 
@@ -894,7 +924,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
     $('speed').value = ui.speed; $('speedV').textContent = (+ui.speed).toFixed(2);
     $('dictBox').hidden = ui.mode !== 'dict'; $('recBox').hidden = ui.mode === 'dict';
     $('scriptBox').classList.toggle('big', ui.mode === 'overlap' || ui.mode === 'read');
-    $('scriptBox').hidden = false;
+    $('scriptBox').hidden = false; renderSv();
     renderScript(); renderTicks(); renderRec(); renderPlay(); lastSeg = -1; render();
     if (ui.mode === 'dict') { loadDict(); renderDictAll(); }
   }
