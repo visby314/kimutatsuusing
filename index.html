@@ -320,6 +320,8 @@ ol.recent{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
 ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--rule-soft);padding:3px 0}
 .ttable tbody th{font-weight:400;font-size:.78rem;max-width:12em;overflow:hidden;text-overflow:ellipsis}
 .ttable td{text-align:center}
+.script p.skip{color:var(--muted);font-size:.85rem !important}
+.pgrid{grid-template-columns:minmax(0,1fr)}
 </style>
 </head>
 <body>
@@ -747,7 +749,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   const scriptLines = () => cur ? (tdata(cur.id).script || '').split('\n').map(x => x.trim()).filter(Boolean) : [];
   function renderScript(){
     const lines = scriptLines();
-    $('script').innerHTML = lines.length ? lines.map((l, i) => `<p data-i="${i}">${esc(l)}</p>`).join('') + (lines.length !== segs.length ? `<p class="note">スクリプトは${lines.length}行、文の区切りは${segs.length}こなので、いまの文は光りません。行の分け方か区切りを直すとそろいます。</p>` : '')
+    $('script').innerHTML = lines.length ? lines.map((l, i) => `<p data-i="${i}"${l === SKIP ? ' class="skip"' : ''}>${esc(l)}</p>`).join('') + (lines.length !== segs.length ? `<p class="note">スクリプトは${lines.length}行、文の区切りは${segs.length}こなので、いまの文は光りません。行の分け方か区切りを直すとそろいます。</p>` : '')
       : '<p class="note">スクリプトはまだありません。「貼り付け・直す」から入れると、オーバーラッピングや音読で見ながら練習でき、書き起こしの答え合わせにも使えます。</p>';
   }
   $('script').addEventListener('click', e => { const p = e.target.closest('p[data-i]'); if (p && scriptLines().length === segs.length) playSeg(+p.dataset.i); });
@@ -787,6 +789,23 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
     if (K <= N) return {lines, segs: lines.map((_, j) => [sg[cut[j]][0], sg[cut[j + 1] - 1][1]])};
     return {lines: sg.map((_, i) => lines.slice(cut[i], cut[i + 1]).join(' ')), segs: sg};
   }
+  // 音声にあってスクリプトにない部分（タイトルや指示の読み上げ）を、はじめと終わりで最大3つまで外して試し、
+  // 1秒あたりの語数がいちばんそろう組み合わせを選ぶ
+  const SKIP = '（スクリプトにない部分）';
+  function alignBest(lines, sg){
+    const K = lines.length, N = sg.length; let best = null;
+    const tryOne = (s, e) => {
+      const mid = sg.slice(s, N - e); if (mid.length < 1) return;
+      const r = align(lines, mid);
+      const rates = r.lines.map((l, i) => Math.max(1, words(l).length) / Math.max(0.3, r.segs[i][1] - r.segs[i][0]));
+      const m = rates.reduce((a, b) => a + b, 0) / rates.length, sd = Math.sqrt(rates.reduce((a, b) => a + (b - m) ** 2, 0) / rates.length);
+      const score = sd / m + (s + e) * 0.03;
+      if (!best || score < best.score) best = {score, lines: [...Array(s).fill(SKIP), ...r.lines, ...Array(e).fill(SKIP)], segs: [...sg.slice(0, s), ...r.segs, ...sg.slice(N - e)], skipped: s + e};
+    };
+    const room = Math.max(0, Math.min(3, N - K));
+    for (let s = 0; s <= room; s++) for (let e = 0; s + e <= room; e++) tryOne(s, e);
+    return best || align(lines, sg);
+  }
   const countNote = () => { const n = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean).length; $('scriptCount').textContent = `いま ${n}行。音声の区切りは ${segs.length}こ。`; };
   $('scriptText').addEventListener('input', countNote);
   $('scriptEdit').addEventListener('click', countNote);
@@ -795,8 +814,9 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
     const lines = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean); const d = tdata(cur.id);
     let msg = '';
     if (lines.length && lines.length !== segs.length) {
-      const r = align(lines, segs);
-      if (r.segs !== segs) { segs = r.segs.map(x => x.slice()); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); renderTicks(); renderSegList(); msg = `文の数（${lines.length}）に合わせて、音声の区切りを${segs.length}こにそろえました。`; }
+      const r = alignBest(lines.filter(l => l !== SKIP), segs);
+      if (r.skipped) msg = `はじめか終わりの${r.skipped}こは、スクリプトにない読み上げ（タイトルや指示）として外しました。`;
+      if (r.segs !== segs) { segs = r.segs.map(x => x.slice()); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); renderTicks(); renderSegList(); if (segs.length !== r.lines.length || !msg) msg += `文の数に合わせて、音声の区切りを${segs.length}こにそろえました。`; }
       else msg = `音声の区切り（${segs.length}こ）より文が多いので、近い文どうしを1行にまとめました。`;
       d.script = r.lines.join('\n');
     } else d.script = lines.join('\n');
@@ -824,6 +844,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   $('dictCheck').addEventListener('click', () => {
     const lines = scriptLines();
     if (lines.length !== segs.length) { $('dictDiff').hidden = false; $('dictDiff').innerHTML = '<p class="note">答え合わせには、文の区切りと同じ行数のスクリプトが必要です。本のスクリプトと見比べてください。</p>'; return; }
+    if (lines[segI] === SKIP) { $('dictDiff').hidden = false; $('dictDiff').innerHTML = '<p class="note">この文はスクリプトにない読み上げ（タイトルや指示）です。</p>'; return; }
     const r = diffHTML($('dictText').value, lines[segI]);
     $('dictDiff').hidden = false; $('dictDiff').innerHTML = `<p><b>${r.score}%</b> 合っています</p><p class="dw">${r.html}</p><p class="note">緑は合っていた語、赤の下線は聞き取れなかった語、取り消し線は余分に書いた語です。</p>`;
   });
