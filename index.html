@@ -488,7 +488,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   let data = {v:1, tracks:{}, log:[]}, dirty = false, pendingStudy = [];
   try { const v = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (v && v.v === 1) { data = v.data; dirty = !!v.dirty; pendingStudy = v.pendingStudy || []; } } catch(e) {}
   const saveLocal = () => { try { localStorage.setItem(LS_DATA, JSON.stringify({v:1, data, dirty, pendingStudy})); } catch(e) {} };
-  let manifest = null;
+  let manifest = null, manifestErr = '';
   try { manifest = JSON.parse(localStorage.getItem('listen-manifest-v1') || 'null'); } catch(e) {}
   const ghReady = () => !!(gh.owner && gh.token);
   const allTracks = () => manifest ? manifest.books.flatMap(b => b.tracks.map(t => Object.assign({book: b.name}, t))) : [];
@@ -510,7 +510,11 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
       manifest = await r.json();
       try { localStorage.setItem('listen-manifest-v1', JSON.stringify(manifest)); } catch(e) {}
       renderBooks();
-    } catch(e) { if (!manifest) $('books').innerHTML = `<p class="empty">音声の一覧を取ってこられませんでした（${esc(e.message)}）。「設定」を確認してください。</p>`; }
+      manifestErr = '';
+    } catch(e) {
+      manifestErr = /404/.test(e.message) ? `音声のリポジトリ ${as.audioRepo} が見つかりません。鍵の Repository access にこのリポジトリが入っているか確かめてください。` : /401/.test(e.message) ? '鍵が正しくないか、期限が切れています。' : `音声の一覧を取ってこられませんでした（${e.message}）。電波を確かめてください。`;
+      renderBooks();
+    }
   }
 
   // 記録の同期：tracks は項目ごとに新しいほう、log は id ごとに新しいほう
@@ -594,7 +598,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   const counts = id => { const c = {}; data.log.filter(l => l.trackId === id && !l.deleted).forEach(l => { c[l.mode] = (c[l.mode] || 0) + 1; }); return c; };
   function renderBooks(){
     $('setupBanner').hidden = ghReady() && !!as.audioRepo;
-    if (!manifest) { if (ghReady() && as.audioRepo) $('books').innerHTML = '<p class="empty">音声の一覧を取ってきています…</p>'; else $('books').innerHTML = ''; return; }
+    if (!manifest) { $('books').innerHTML = manifestErr ? `<p class="empty">${esc(manifestErr)}</p>` : ghReady() && as.audioRepo ? '<p class="empty">音声の一覧を取ってきています…</p>' : ''; return; }
     $('books').innerHTML = manifest.books.map(b => {
       const saved = b.tracks.filter(t => savedIds.has(t.id)).length;
       return `<section class="ygroup"><h2>${esc(b.name)}</h2>
