@@ -940,7 +940,11 @@ body.reading{overflow:hidden}
     const S = x => { let v = x; for (const [a, b] of P) { if (b <= x) v -= b - a; else if (a < x) v -= x - a; } return v; };
     const C = P.filter(([a, b]) => a > 0.05 && b < dur - 0.05).map(([a, b]) => ({a, b, m: (a + b) / 2, L: b - a}));
     const lead = P[0][0] < 0.05 ? P[0][1] : 0, tail = P[P.length - 1][1] > dur - 0.05 ? P[P.length - 1][0] : dur;
-    const starts = [{x: lead, i: -1}].concat(C.slice(0, 3).map((c, i) => ({x: c.m, i})));
+    // キムタツの音声は、どのトラックも最初に1.3〜1.9秒ほどトラック名を読み上げ、1秒以上あけてから本文に入る。
+    // 最初の2.5秒以内に1秒以上の無音があれば、そこまでをトラック名として必ず外す
+    const ti = C.findIndex(c => c.L >= 1.0 && c.a - lead <= 2.5);
+    const s0 = ti >= 0 ? ti : -1;
+    const starts = (s0 < 0 ? [{x: lead, i: -1}] : []).concat(C.slice(s0 + 1 > 0 ? s0 : 0, (s0 >= 0 ? s0 : 0) + 3).map((c, k) => ({x: c.m, i: (s0 >= 0 ? s0 : 0) + k})));
     const ends = [{x: tail, i: C.length}].concat(C.slice(-3).map((c, k) => ({x: c.m, i: C.length - Math.min(3, C.length) + k})));
     const sig = 1.2, lam = 1.5, cw = [0]; W.forEach(w => cw.push(cw[cw.length - 1] + w));
     let best = null;
@@ -969,7 +973,7 @@ body.reading{overflow:hidden}
       const eAt = cuts.map(k => cs[k].a).concat([en.i >= C.length ? en.x : C[en.i].a]);
       const rates = W.map((w, j) => w / Math.max(0.3, S(eAt[j]) - S(sAt[j])));
       const mu = rates.reduce((a, b) => a + b, 0) / K, cv = Math.sqrt(rates.reduce((a, b) => a + (b - mu) ** 2, 0) / K) / mu;
-      const score = cv + (st.i >= 0 ? 0.03 : 0) + (en.i < C.length ? 0.03 : 0);
+      const score = cv + (st.i > s0 ? 0.03 : 0) + (st.i >= 0 && s0 < 0 ? 0.03 : 0) + (en.i < C.length ? 0.03 : 0);
       if (!best || score < best.score) best = {score, sAt, eAt, skipS: st.i >= 0 ? [lead, C[st.i].a] : null, skipE: en.i < C.length ? [C[en.i].b, tail] : null};
     }
     if (!best) return null;
