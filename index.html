@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>リスニング練習</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="リスニング">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7f7f5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+/* Layout: Ankiのカード風。練習の画面はPCでは2列（左に再生、右にスクリプトと書き起こし）、スマホでは1列 */
+:root{
+  --bg:#f7f7f5; --paper:#ffffff; --ink:#1f2328; --muted:#6b7280; --rule:#d0d0cc; --rule-soft:#e2e2dd; --tint:#eceff3;
+  --accent:#1d4ed8; --accent-soft:#e3efff; --ok:#15803d; --ok-soft:#e3f6e9; --warn:#c2410c; --warn-soft:#fff0de; --bad:#b42318; --bad-soft:#ffe4e4;
+  --f-display:"Disp","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Yu Gothic UI","Hiragino Sans","Meiryo",sans-serif;
+  color-scheme:light;
+}
+@font-face{font-family:"Disp";src:url(data:font/woff;base64,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) format("woff");font-display:swap}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px}
+h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(1.6rem,7vw,2.1rem);line-height:1.15}
+.sync{font-size:.75rem;font-weight:700;color:var(--muted)}
+.sync[data-kind="ok"]{color:var(--ok)} .sync[data-kind="warn"]{color:var(--warn)}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--tint);border-radius:999px;padding:4px}
+.segbtn{font:inherit;font-size:.85rem;font-weight:700;border:0;background:transparent;color:var(--muted);padding:7px 2px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.segbtn[aria-selected="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.banner{margin:0;background:var(--warn-soft);color:var(--warn);font-size:.85rem;font-weight:700;padding:10px 14px;border-radius:10px}
+.banner.demo{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.banner[hidden],.view[hidden]{display:none}
+.view{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--paper);border:1px solid var(--rule-soft);border-left:5px solid var(--accent);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card.plain{border-left-width:1px;gap:10px}
+.card[hidden]{display:none}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+.flabel{font-size:.85rem;font-weight:700;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.prov{font-size:.7rem;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.85rem;font-weight:700;border:1px solid var(--rule-soft);background:var(--paper);color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+input[type=text],input[type=password],input[type=number],input[type=date],textarea,select{font:inherit;font-size:16px;width:100%;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=date]{min-height:42px}
+textarea{resize:vertical}
+select{appearance:auto}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.part{display:grid;grid-template-columns:1fr 64px auto;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--rule-soft);border-radius:8px;padding:6px 8px}
+.part .pn{font-size:.8rem;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.part input{padding:6px;text-align:right;font-variant-numeric:tabular-nums}
+.part .pm{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.total{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;border-top:1px dashed var(--rule-soft);padding-top:8px}
+.total b{font-family:var(--f-display);font-weight:400;font-size:2rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.total span{font-size:.85rem;color:var(--muted);font-weight:700}
+.total .vs{margin-left:auto}
+.vs[data-kind="ok"]{color:var(--ok)} .vs[data-kind="warn"]{color:var(--warn)}
+.primary{font:inherit;font-weight:700;font-size:1rem;color:#fff;background:var(--accent);border:0;border-radius:999px;padding:12px;cursor:pointer}
+.tool{font:inherit;font-size:.82rem;font-weight:700;color:var(--accent);background:var(--paper);border:1px solid var(--accent);border-radius:999px;padding:5px 12px;cursor:pointer;align-self:flex-start}
+.tool.danger{color:var(--bad);border-color:var(--bad)}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.msg{margin:0;font-size:.85rem;font-weight:700;color:var(--accent);min-height:1.2em}
+.note{margin:0;font-size:.8rem;color:var(--muted)}
+.empty{margin:0;padding:18px 4px;color:var(--muted);font-weight:700;text-align:center}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ygroup{display:flex;flex-direction:column;gap:6px}
+.ygroup h2{margin:6px 0 0;font-family:var(--f-display);font-weight:400;font-size:1.25rem;display:flex;align-items:center;gap:10px}
+.ygroup h2::after{content:"";flex:1;height:1px;background:var(--rule)}
+.ysum{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 6px;background:var(--paper);border:1px solid var(--rule-soft);border-radius:10px;padding:8px 12px}
+.ysum .ylab{font-size:.8rem;font-weight:700;color:var(--muted)}
+.ysum>b{font-family:var(--f-display);font-weight:400;font-size:1.7rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.ysum .ymax{font-size:.85rem;font-weight:700;color:var(--muted)}
+.ysum .ynote{font-size:.75rem;color:var(--muted);margin-left:auto}
+.ysum .yest{flex-basis:100%;font-size:.8rem;font-weight:700;border-top:1px dashed var(--rule-soft);padding-top:4px;margin-top:2px}
+.ysum .yest b{font-family:var(--f-display);font-weight:400;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.ysum .yest[data-kind="ok"]{color:var(--ok)} .ysum .yest[data-kind="warn"]{color:var(--warn)}
+ol.atts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.att{background:var(--paper);border:1px solid var(--rule-soft);border-left:5px solid var(--accent);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.atop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.asub{font-weight:700}
+.asub em{font-style:normal;font-size:.7rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:0 8px;margin-left:6px}
+.ascore{font-family:var(--f-display);font-size:1.6rem;line-height:1;font-variant-numeric:tabular-nums}
+.ascore small{font-family:var(--f-body);font-size:.8rem;color:var(--muted);margin-left:3px}
+.ascore[data-kind="ok"]{color:var(--ok)} .ascore[data-kind="warn"]{color:var(--warn)}
+.abars{display:flex;gap:3px}
+.pb{flex:1;height:6px;background:var(--tint);border-radius:999px;overflow:hidden}
+.pb i{display:block;height:100%;width:var(--r);background:var(--accent);border-radius:999px}
+.ameta{font-size:.75rem;color:var(--muted)}
+.amemo{font-size:.8rem;border-top:1px dashed var(--rule-soft);padding-top:4px;overflow-wrap:anywhere}
+.adetail summary{font-size:.78rem;font-weight:700;color:var(--accent);cursor:pointer}
+.adetail[open]{display:flex;flex-direction:column;gap:8px}
+.ptable,.ttable{border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums}
+.ptable th{text-align:left;font-weight:700;padding:3px 12px 3px 0}
+.ptable td{padding:3px 6px;text-align:right}
+.chead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:700;font-size:.9rem}
+.clast{font-family:var(--f-display);font-weight:400;font-size:1.4rem;color:var(--accent)}
+.clast small{font-family:var(--f-body);font-size:.75rem;color:var(--muted);margin-left:3px}
+.chart{width:100%;height:auto;display:block}
+.chart .g{stroke:var(--rule-soft);stroke-width:1}
+.chart .ax{fill:var(--muted);font-size:10px;font-family:var(--f-body)}
+.chart .area{fill:var(--accent-soft)}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round}
+.chart .dot{fill:var(--paper);stroke:var(--accent);stroke-width:2}
+.chart .dot.ok{fill:var(--ok);stroke:var(--ok)}
+.chart .tgt{stroke:var(--warn);stroke-width:1.5;stroke-dasharray:5 4}
+.chart .tgtl{fill:var(--warn);font-size:10px;font-weight:700;font-family:var(--f-body)}
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plist li{display:grid;grid-template-columns:minmax(5em,auto) 1fr 3.6em;gap:8px;align-items:center;font-size:.82rem}
+.plist .pn{font-weight:700;overflow-wrap:anywhere}
+.plist .pt{height:8px;background:var(--tint);border-radius:999px;overflow:hidden}
+.plist .pt i{display:block;height:100%;width:var(--r);background:var(--accent);border-radius:999px}
+.plist .pv{text-align:right;font-variant-numeric:tabular-nums}
+.plist li.low .pn,.plist li.low .pv{color:var(--bad)}
+.plist li.low .pt i{background:var(--bad)}
+.tscroll{overflow-x:auto}
+.ttable{width:100%}
+.ttable th,.ttable td{padding:5px 4px;text-align:right;border-bottom:1px dashed var(--rule-soft);white-space:nowrap}
+.ttable thead th{font-size:.72rem;color:var(--muted)}
+.ttable tbody th{text-align:left}
+.ttable td.ok{color:var(--ok);font-weight:700} .ttable td.warn{color:var(--warn);font-weight:700}
+.na{color:var(--muted)}
+.cfgsubs{display:flex;flex-direction:column;gap:12px}
+.cfgsub{border:1px solid var(--rule-soft);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.cfgfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* 年度の選択 */
+.lpick{display:flex;gap:8px}
+.lpick select{flex:1}
+.lpick select#kindPick{flex:0 0 6.5em}
+/* 一覧：消化表と記録の切り替え */
+.minis{display:inline-grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--tint);border-radius:999px;padding:3px;align-self:flex-start}
+.mini{font:inherit;font-size:.82rem;font-weight:700;border:0;background:transparent;color:var(--muted);padding:5px 16px;border-radius:999px;cursor:pointer}
+.mini[aria-selected="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.filters.one{grid-template-columns:1fr}
+.filters select[hidden],#gridBody[hidden],#listBody[hidden]{display:none}
+.gtable{border-collapse:separate;border-spacing:3px;width:100%;font-variant-numeric:tabular-nums}
+.gtable thead th{font-size:.72rem;color:var(--muted);font-weight:700;text-align:center;padding-bottom:2px}
+.gtable tbody th,.gtable tfoot th{font-size:.78rem;font-weight:700;text-align:left;white-space:nowrap;padding-right:4px;position:sticky;left:0;background:var(--paper);z-index:1}
+.gtable td{padding:0;text-align:center}
+.gtable td,.gtable th{vertical-align:middle}
+.gc{display:block}
+.gc{font:inherit;font-size:.82rem;font-weight:700;width:100%;min-width:36px;height:30px;padding:0 2px;border:0;border-radius:6px;background:var(--accent-soft);color:var(--accent);cursor:pointer;position:relative;font-variant-numeric:tabular-nums}
+.gc[data-kind="ok"]{background:var(--ok-soft);color:var(--ok)}
+.gc[data-kind="warn"]{background:var(--warn-soft);color:var(--warn)}
+.gc.none{background:transparent;border:1px dashed var(--rule)}
+.gc sup{position:absolute;top:1px;right:3px;font-size:.6rem;line-height:1}
+.gtable .gsum{font-size:.78rem;font-weight:700;text-align:right;white-space:nowrap;padding-left:6px}
+.gtable .gsum.gpart{color:var(--muted);font-weight:400}
+.gtable tfoot td,.gtable tfoot th{font-size:.72rem;color:var(--muted);font-weight:700;padding-top:4px}
+/* 受け箱へ送る */
+.tool.sm{font-size:.72rem;padding:1px 9px}
+.ptable td:last-child{padding-left:10px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+dialog.sheet{width:min(640px,calc(100% - 24px));max-height:calc(100dvh - 24px);border:0;border-radius:14px;padding:16px;background:var(--paper);color:var(--ink);overflow:auto}
+dialog.sheet::backdrop{background:rgb(0 0 0 / .35)}
+#sendForm{display:flex;flex-direction:column;gap:14px}
+.sheethead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sheethead h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:1.35rem}
+.req{font-style:normal;font-size:.7rem;color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:0 8px}
+.pick{display:block;text-align:center;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px dashed var(--accent);border-radius:10px;padding:12px;cursor:pointer}
+.pick.sub{color:var(--muted);background:var(--tint);border-color:var(--rule)}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumbs:empty{display:none}
+.th{position:relative}
+.th img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--rule-soft);display:block}
+.rm{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:14px;line-height:24px;padding:0;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+/* ---- 勉強時間 記録 ---- */
+.chip .dot,.dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--c,#6b7280);margin-right:6px;vertical-align:.05em}
+#subjChips .chip[aria-checked="true"]{background:var(--c);border-color:var(--c);color:#fff}
+#subjChips .chip[aria-checked="true"] .dot{background:#fff}
+.mini[aria-checked="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.minrow{display:flex;align-items:center;gap:8px;max-width:10em}
+.minrow span{font-weight:700;color:var(--muted)}
+.clock{text-align:center;padding:10px 0 4px;border-top:1px dashed var(--rule-soft);border-bottom:1px dashed var(--rule-soft)}
+.clabel{font-size:.8rem;font-weight:700;color:var(--muted)}
+.cbig{font-family:var(--f-display);font-size:clamp(3.6rem,19vw,5.4rem);line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
+.clock[data-state="running"] .cbig{color:var(--accent)}
+.clock[data-state="paused"] .cbig{color:var(--warn)}
+.csub{font-size:.85rem;font-weight:700;color:var(--muted);min-height:1.4em}
+.cbar{height:8px;background:var(--tint);border-radius:999px;overflow:hidden;margin:8px 4px 0}
+.cbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:999px}
+.cbar[hidden]{display:none}
+.btns{display:flex;flex-direction:column;gap:8px}
+.btns .tool{align-self:stretch;padding:9px 12px;font-size:.9rem}
+.primary.big{font-size:1.15rem;padding:15px}
+.check{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.check[hidden]{display:none}
+.check input{width:20px;height:20px}
+.gbar{height:10px;background:var(--tint);border-radius:999px;overflow:hidden}
+.gbar i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.plist .pv small{color:var(--muted);margin-left:6px;font-size:.72rem}
+.plist li{grid-template-columns:minmax(5.5em,auto) 1fr 6.5em}
+.sumtitle{font-weight:700;cursor:pointer;color:var(--accent)}
+details.card[open]{gap:14px}
+#manualForm{display:flex;flex-direction:column;gap:12px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:8px}
+@media (max-width:420px){.row3{grid-template-columns:1fr 1fr}.row3 .field:first-child{grid-column:1 / -1}}
+input[type=time]{font:inherit;font-size:16px;width:100%;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;min-height:42px;min-width:0}
+.ygroup h2 small{font-family:var(--f-body);font-size:.8rem;color:var(--muted)}
+.ygroup h2 .dtot{order:3;font-family:var(--f-body);font-size:.85rem;font-weight:700;color:var(--accent)}
+.sess{background:var(--paper);border:1px solid var(--rule-soft);border-left:5px solid var(--c);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.sess .ascore{font-size:1.3rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.kpis div{background:var(--bg);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.kpis b{font-family:var(--f-display);font-weight:400;font-size:1.25rem;line-height:1.2}
+.kpis b small{font-family:var(--f-body);font-size:.75rem;margin-left:2px}
+.kpis span{font-size:.72rem;color:var(--muted);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;font-weight:700;color:var(--muted)}
+#view-stats .minis,#view-run .minis{align-self:flex-start}
+.srow{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center}
+.srow input[type=color]{width:40px;height:36px;padding:2px;border:1px solid var(--rule);border-radius:8px;background:var(--paper)}
+.chip:disabled{opacity:.55}
+[hidden]{display:none!important}
+.kpis b{font-size:1.1rem}
+.pbar{position:relative;height:14px;background:var(--tint);border-radius:999px;overflow:visible}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.pbar b{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink)}
+.kpis b.ok{color:var(--ok)} .kpis b.warn{color:var(--warn)}
+#planCard .kpis,#statPlan .kpis{grid-template-columns:1fr 1fr}
+
+/* ノルマ */
+#bookForm{display:flex;flex-direction:column;gap:12px}
+#bookSum:empty{display:none}
+.book{background:var(--paper);border:1px solid var(--rule-soft);border-left:5px solid var(--c);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.book .dot,.blist .dot{background:var(--c)}
+.book .ascore{font-size:1.4rem}
+.bqrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.bq{font-size:.88rem;font-weight:700;border-radius:999px;padding:1px 10px}
+.bq.ok{color:var(--ok);background:var(--ok-soft)} .bq.warn{color:var(--warn);background:var(--warn-soft)} .bq.bad{color:var(--bad);background:var(--bad-soft)}
+.bqs{font-size:.75rem;color:var(--muted)}
+.warnt{color:var(--warn);font-weight:700}
+.okt{color:var(--ok);font-weight:700}
+.badd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px dashed var(--rule-soft);padding-top:6px}
+.badd input{width:5em;padding:4px 8px;font-size:16px}
+.blist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.blist li{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 8px;font-size:.85rem}
+.blist .pn{font-weight:700}
+.segbtn{font-size:.8rem}
+.book .atop{align-items:flex-start}.book .ascore{white-space:nowrap}
+/* ---- リスニング練習 ---- */
+.seg{grid-template-columns:repeat(4,1fr)}
+.segbtn{font-size:.85rem}
+#listMsg:empty{display:none}
+body.wide .wrap{max-width:1100px}
+.pgrid{display:grid;grid-template-columns:1fr;gap:12px}
+.pgrid[hidden]{display:none}
+.pcol{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (min-width:900px){.pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.pcol:first-child{position:sticky;top:12px}}
+.bookbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+ol.tracks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.trk{font:inherit;width:100%;display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;background:var(--paper);border:1px solid var(--rule-soft);border-left:5px solid var(--accent);border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--ink)}
+.trk.cur{background:var(--accent-soft)}
+.trk .tn{font-weight:700}
+.trk .tm{font-size:.78rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.trk .tc{grid-column:1 / -1;display:flex;gap:6px}
+.trk .tc i{font-style:normal;font-size:.7rem;font-weight:700;color:var(--muted);background:var(--tint);border-radius:999px;padding:0 7px}
+.trk .tc i.on{color:#fff;background:var(--ok)}
+.ttl{display:flex;flex-direction:column;gap:2px}
+.tbook{font-size:.75rem;color:var(--muted);font-weight:700}
+.ttl b{font-family:var(--f-display);font-weight:400;font-size:1.35rem;line-height:1.2}
+.pl{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--rule-soft);padding-top:12px}
+.plhead{display:flex;align-items:baseline;gap:8px}
+.plhead #segNo{font-size:.85rem;font-weight:700;color:var(--accent);margin-right:auto}
+.plhead b{font-family:var(--f-display);font-weight:400;font-size:1.8rem;line-height:1;font-variant-numeric:tabular-nums}
+.plhead #tDur{font-size:.85rem;color:var(--muted);font-weight:700}
+.bar{position:relative;height:14px;background:var(--tint);border-radius:999px;cursor:pointer;touch-action:manipulation}
+.bar #barFill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent-soft);border-radius:999px}
+.bar #barHead{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--accent);border-radius:2px}
+.bar .segs i{position:absolute;top:2px;bottom:2px;width:1px;background:var(--muted);opacity:.5;z-index:1}
+.ctl{display:grid;grid-template-columns:1fr .8fr 1.3fr .8fr 1fr;gap:6px}
+.cb{font:inherit;font-size:.85rem;font-weight:700;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:10px;padding:12px 2px;cursor:pointer;touch-action:manipulation}
+.cb.play{background:var(--accent);border-color:var(--accent);color:#fff;font-size:1rem}
+.ctl2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.spd{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.spd input{width:140px}
+.spd b{font-variant-numeric:tabular-nums;color:var(--ink);min-width:2.6em}
+.opts{display:flex;flex-wrap:wrap;gap:6px 14px}
+.gapl select{width:auto;padding:4px 6px;font-size:16px}
+.rec{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--rule-soft);padding-top:10px}
+.rec[hidden]{display:none}
+.rechead{display:flex;justify-content:space-between;align-items:center}
+.recstate{font-size:.8rem;font-weight:700;color:var(--muted)}
+.recstate[data-on="1"]{color:var(--bad)}
+.recstate[data-on="1"]::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--bad);margin-right:6px}
+ol.recs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ol.recs li{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--muted);background:var(--bg);border-radius:8px;padding:6px 8px}
+.donebar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px dashed var(--rule-soft);padding-top:10px}
+.donebar .primary{padding:10px 18px;font-size:.95rem}
+.script{display:flex;flex-direction:column;gap:2px;max-height:55vh;overflow:auto}
+.script p{margin:0;padding:6px 8px;border-radius:6px;line-height:1.7;cursor:pointer}
+.script p.now{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.script p.note{cursor:default}
+#scriptBox.big .script p{font-size:1.15rem}
+#scriptEditor{display:flex;flex-direction:column;gap:8px}
+#dictText{font-size:17px;line-height:1.6}
+.diff{background:var(--bg);border-radius:8px;padding:8px 10px}
+.diff p{margin:0 0 4px}
+.dw{line-height:1.9}
+.dw .ok{color:var(--ok)}
+.dw ins{color:var(--bad);text-decoration:underline;text-decoration-thickness:2px}
+.dw del{color:var(--muted)}
+.dall summary{font-size:.8rem;font-weight:700;color:var(--accent);cursor:pointer}
+.dall ol{font-size:.85rem;padding-left:1.6em;margin:6px 0 0}
+.keys{display:none}
+@media (hover:hover) and (pointer:fine){.keys{display:block}}
+ol.seglist{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+ol.seglist li.now .tool{background:var(--accent);color:#fff}
+ol.recent{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.82rem}
+ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--rule-soft);padding:3px 0}
+.ttable tbody th{font-weight:400;font-size:.78rem;max-width:12em;overflow:hidden;text-overflow:ellipsis}
+.ttable td{text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <h1>リスニング練習</h1>
+    <div class="sync" id="sync" role="status"></div>
+  </header>
+
+  <nav class="seg" role="tablist" aria-label="画面">
+    <button type="button" class="segbtn" role="tab" data-view="list" aria-selected="true">音声</button>
+    <button type="button" class="segbtn" role="tab" data-view="practice" aria-selected="false">練習</button>
+    <button type="button" class="segbtn" role="tab" data-view="log" aria-selected="false">記録</button>
+    <button type="button" class="segbtn" role="tab" data-view="settings" aria-selected="false">設定</button>
+  </nav>
+
+  <p class="banner" id="setupBanner" hidden>まだ音声の置き場所が設定されていません。「設定」でリポジトリと鍵を入れてください。</p>
+
+  <!-- 音声の一覧 -->
+  <section class="view" id="view-list">
+    <p class="msg" id="listMsg" role="status"></p>
+    <div id="books"></div>
+  </section>
+
+  <!-- 練習 -->
+  <section class="view" id="view-practice" hidden>
+    <p class="empty" id="noTrack">「音声」から練習するトラックを選んでください。</p>
+    <div class="pgrid" id="practice" hidden>
+      <div class="pcol">
+        <div class="card">
+          <div class="ttl"><span class="tbook" id="tBook"></span><b id="tTitle"></b></div>
+          <div class="chips" id="modes" role="radiogroup" aria-label="練習のやり方"></div>
+          <p class="note" id="modeNote"></p>
+
+          <div class="pl">
+            <div class="plhead"><span id="segNo">文 1 / 1</span><b id="tNow">0:00</b><span id="tDur">/ 0:00</span></div>
+            <div class="bar" id="bar" role="slider" aria-label="再生位置" tabindex="0"><div class="segs" id="segTicks"></div><i id="barFill"></i><b id="barHead"></b></div>
+            <div class="ctl">
+              <button type="button" class="cb" data-c="prev" aria-label="前の文">前の文</button>
+              <button type="button" class="cb" data-c="back" aria-label="2秒戻る">−2秒</button>
+              <button type="button" class="cb play" data-c="play" id="playBtn" aria-label="再生">再生</button>
+              <button type="button" class="cb" data-c="fwd" aria-label="2秒進む">＋2秒</button>
+              <button type="button" class="cb" data-c="next" aria-label="次の文">次の文</button>
+            </div>
+            <div class="ctl2">
+              <button type="button" class="tool" data-c="replay">この文をもう一度</button>
+              <label class="spd">速さ <input type="range" id="speed" min="0.5" max="1.5" step="0.05"> <b id="speedV">1.00</b></label>
+            </div>
+            <div class="opts">
+              <label class="check"><input type="checkbox" id="optStop"> 1文ずつ止める</label>
+              <label class="check"><input type="checkbox" id="optLoop"> 同じ文をくり返す</label>
+              <label class="check gapl">文のあとに間をあける
+                <select id="optGap"><option value="0">なし</option><option value="1">文の長さぶん</option><option value="1.5">1.5倍</option></select></label>
+            </div>
+          </div>
+
+          <div class="rec" id="recBox">
+            <div class="rechead"><span class="flabel">自分の声</span><span class="recstate" id="recState"></span></div>
+            <div class="tools" id="recBtns"></div>
+            <ol class="recs" id="recList"></ol>
+          </div>
+
+          <div class="donebar">
+            <span class="note" id="sessNote"></span>
+            <button type="button" class="primary" id="doneBtn">この練習を記録する</button>
+          </div>
+          <p class="msg" id="pMsg" role="status"></p>
+        </div>
+      </div>
+
+      <div class="pcol">
+        <!-- 書き起こし -->
+        <div class="card" id="dictBox" hidden>
+          <div class="chead"><span>書き起こし</span><span class="note" id="dictNo"></span></div>
+          <textarea id="dictText" rows="4" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="聞こえたとおりに英語で打つ"></textarea>
+          <div class="tools"><button type="button" class="tool" id="dictReplay">もう一度聞く</button><button type="button" class="tool" id="dictPrev">前の文</button><button type="button" class="tool" id="dictCheck">答え合わせ</button><button type="button" class="tool" id="dictNext">次の文へ</button></div>
+          <div class="diff" id="dictDiff" hidden></div>
+          <p class="note keys">PCでは Ctrl+Space でこの文をもう一度、Ctrl+Enter で次の文へ進みます。</p>
+          <details class="dall"><summary>このトラックで打った文をまとめて見る</summary><ol id="dictAll"></ol></details>
+        </div>
+
+        <!-- スクリプト -->
+        <div class="card" id="scriptBox">
+          <div class="chead"><span>スクリプト</span><button type="button" class="tool sm" id="scriptEdit">貼り付け・直す</button></div>
+          <div class="script" id="script"></div>
+          <div id="scriptEditor" hidden>
+            <p class="note">本のスクリプトをそのまま貼り付けて「整える」を押すと、行頭の番号を消して1文1行にします。結果を見て直してから「保存する」を押すと、文の数に合わせて音声の区切りもそろえます。iPhoneなら、写真やPDFの英文を長押しして「すべてを選択」→「コピー」で文字にできます。</p>
+            <textarea id="scriptText" rows="12" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+            <p class="note" id="scriptCount"></p>
+            <div class="tools"><button type="button" class="tool" id="scriptTidy">整える</button><button type="button" class="tool" id="scriptSave">保存する</button><button type="button" class="tool" id="scriptCancel">やめる</button></div>
+          </div>
+        </div>
+
+        <!-- 区切り -->
+        <details class="card" id="segEditBox">
+          <summary class="sumtitle">文の区切りを直す</summary>
+          <p class="note">区切りは無音のところで自動で付けています。ずれていたら、再生を止めた位置で「ここで区切る」、短すぎる文は「次とつなげる」で直せます。</p>
+          <div class="tools"><button type="button" class="tool" id="segSplit">ここで区切る</button><button type="button" class="tool" id="segMerge">いまの文を次とつなげる</button><button type="button" class="tool danger" id="segReset">自動の区切りに戻す</button></div>
+          <ol class="seglist" id="segList"></ol>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 記録 -->
+  <section class="view" id="view-log" hidden>
+    <div class="card plain" id="logSum"></div>
+    <div class="card plain" id="logTracks"></div>
+    <div class="card plain" id="logRecent"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="view" id="view-settings" hidden>
+    <form id="ghForm" class="card" novalidate>
+      <p class="note">音声は非公開リポジトリから取ってきて、この端末に保存します。練習の記録は study-inbox の records/listening.json に入ります。鍵はこの端末の中だけに保存されます。鍵には、音声のリポジトリと study-inbox の両方を読み書きできる許可が必要です。</p>
+      <div class="field"><label class="flabel" for="owner">ユーザー名</label><input id="owner" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="visby314"></div>
+      <div class="field"><label class="flabel" for="audioRepo">音声のリポジトリ名（非公開）</label><input id="audioRepo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label class="flabel" for="repo">記録のリポジトリ名</label><input id="repo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="study-inbox"></div>
+      <div class="field"><label class="flabel" for="token">鍵（Fine-grained token）</label><input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="受け箱アプリに入れたものと同じ"></div>
+      <button type="submit" class="primary">保存してつながるか確かめる</button>
+      <p class="msg" id="ghMsg" role="status"></p>
+    </form>
+    <div class="card">
+      <label class="check"><input type="checkbox" id="toStudyLog"> 練習の時間を「勉強時間 記録」にも英語として足す</label>
+      <p class="note">勉強時間アプリで別に計っているときは、二重にならないように外してください。</p>
+    </div>
+    <div class="card">
+      <span class="flabel">この端末に保存した音声</span>
+      <p class="note" id="storeNote"></p>
+      <button type="button" class="tool danger" id="clearAudio">保存した音声を全部消す</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const now = () => new Date().toISOString();
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const pad = n => String(n).padStart(2, '0');
+  const clock = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+  const dayKey = ms => { const d = new Date(ms - 4 * 3600000); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const dur = sec => { const m = Math.round(sec / 60); const h = Math.floor(m / 60); return h ? `${h}時間${m % 60 ? (m % 60) + '分' : ''}` : `${m}分`; };
+
+  const MODES = [
+    {id:'shadow', name:'シャドーイング', note:'お手本を聞きながら、少し遅れて同じように言う。テキストは見ない。慣れないうちは速さを0.8くらいに落とす。'},
+    {id:'overlap', name:'オーバーラッピング', note:'スクリプトを見ながら、お手本と同時に読む。音の高さ、つながり、弱く読むところをそろえる。'},
+    {id:'dict', name:'書き起こし', note:'1文流れたら止まる。聞こえたとおりに打って、分からないところは何度でも聞き直す。'},
+    {id:'read', name:'音読', note:'スクリプトを声に出して読み、録った自分の声をお手本と聞き比べる。お手本の文のあとに間をあけると、まねして言いやすい。'},
+  ];
+  const MODE_DEF = {shadow:{stop:false, gap:'0', rec:true}, overlap:{stop:false, gap:'0', rec:true}, dict:{stop:true, gap:'0', rec:false}, read:{stop:true, gap:'1', rec:true}};
+
+  // ---------- 設定と状態 ----------
+  const LS_GH = 'study-inbox-settings-v1', LS_A = 'listen-settings-v1', LS_DATA = 'listen-data-v1', LS_UI = 'listen-ui-v1';
+  let gh = {owner:'', repo:'', token:''};
+  try { Object.assign(gh, JSON.parse(localStorage.getItem(LS_GH) || '{}')); } catch(e) {}
+  let as = {audioRepo:'kimutatsu2222', toStudyLog:true};
+  try { Object.assign(as, JSON.parse(localStorage.getItem(LS_A) || '{}')); } catch(e) {}
+  let ui = {track:null, mode:'shadow', speed:1, opts:{}};
+  try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || '{}')); } catch(e) {}
+  const saveUI = () => { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch(e) {} };
+  // data：練習の記録（study-inbox の records/listening.json と同期）
+  // tracks[id] = {segs, segsAt, script, scriptAt, dict:{i:text}, dictAt}、log = [{id, trackId, mode, sec, start, date, updatedAt}]
+  let data = {v:1, tracks:{}, log:[]}, dirty = false, pendingStudy = [];
+  try { const v = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (v && v.v === 1) { data = v.data; dirty = !!v.dirty; pendingStudy = v.pendingStudy || []; } } catch(e) {}
+  const saveLocal = () => { try { localStorage.setItem(LS_DATA, JSON.stringify({v:1, data, dirty, pendingStudy})); } catch(e) {} };
+  let manifest = null;
+  try { manifest = JSON.parse(localStorage.getItem('listen-manifest-v1') || 'null'); } catch(e) {}
+  const ghReady = () => !!(gh.owner && gh.token);
+  const allTracks = () => manifest ? manifest.books.flatMap(b => b.tracks.map(t => Object.assign({book: b.name}, t))) : [];
+  const trackById = id => allTracks().find(t => t.id === id);
+  const tdata = id => data.tracks[id] || (data.tracks[id] = {});
+
+  // ---------- GitHub ----------
+  const api = (repo, path, opt={}) => fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(repo)}${path}`, Object.assign({}, opt, {
+    headers: Object.assign({'Authorization': 'Bearer ' + gh.token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'}, opt.headers || {})}));
+  const enc = t => btoa(unescape(encodeURIComponent(t)));
+  const dec = b => decodeURIComponent(escape(atob(b.replace(/\n/g, ''))));
+  function setSync(t, kind){ const s = $('sync'); s.textContent = t; s.dataset.kind = kind || ''; }
+
+  async function loadManifest(){
+    if (!ghReady() || !as.audioRepo) return;
+    try {
+      const r = await api(as.audioRepo, '/contents/manifest.json', {headers:{'Accept':'application/vnd.github.raw'}});
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      manifest = await r.json();
+      try { localStorage.setItem('listen-manifest-v1', JSON.stringify(manifest)); } catch(e) {}
+      renderBooks();
+    } catch(e) { if (!manifest) $('books').innerHTML = `<p class="empty">音声の一覧を取ってこられませんでした（${esc(e.message)}）。「設定」を確認してください。</p>`; }
+  }
+
+  // 記録の同期：tracks は項目ごとに新しいほう、log は id ごとに新しいほう
+  function merge(a, b){
+    if (!b) return a;
+    const out = {v:1, tracks:{}, log:[]};
+    const ids = new Set([...Object.keys(a.tracks || {}), ...Object.keys(b.tracks || {})]);
+    for (const id of ids) {
+      const x = (a.tracks || {})[id] || {}, y = (b.tracks || {})[id] || {}, o = {};
+      for (const [k, at] of [['segs', 'segsAt'], ['script', 'scriptAt'], ['dict', 'dictAt']]) {
+        const w = (y[at] || '') > (x[at] || '') ? y : x; if (w[k] !== undefined) { o[k] = w[k]; o[at] = w[at]; }
+      }
+      out.tracks[id] = o;
+    }
+    const m = new Map(); for (const l of [...(a.log || []), ...(b.log || [])]) { const z = m.get(l.id); if (!z || l.updatedAt > z.updatedAt) m.set(l.id, l); }
+    out.log = [...m.values()].sort((p, q) => p.start < q.start ? -1 : 1);
+    return out;
+  }
+  let syncing = false, again = false, syncTimer = 0;
+  async function putJSON(repo, path, mergeFn, msg){
+    for (let tryNo = 0; tryNo < 2; tryNo++) {
+      const r = await api(repo, '/contents/' + path);
+      let remote = null, sha;
+      if (r.ok) { const j = await r.json(); sha = j.sha; remote = JSON.parse(dec(j.content)); }
+      else if (r.status !== 404) throw new Error('HTTP ' + r.status);
+      const merged = mergeFn(remote);
+      if (merged === null) return remote;
+      if (JSON.stringify(merged) === JSON.stringify(remote)) return merged;
+      const body = {message: msg, content: enc(JSON.stringify(merged, null, 1))}; if (sha) body.sha = sha;
+      const w = await api(repo, '/contents/' + path, {method:'PUT', body: JSON.stringify(body)});
+      if (w.ok) return merged;
+      if ((w.status === 409 || w.status === 422) && tryNo === 0) continue;
+      throw new Error('HTTP ' + w.status);
+    }
+  }
+  async function sync(){
+    if (!ghReady() || !gh.repo) { setSync(dirty ? 'この端末に保存中' : ''); return; }
+    if (syncing) { again = true; return; }
+    syncing = true; setSync('同期中…');
+    try {
+      data = await putJSON(gh.repo, 'records/listening.json', remote => merge(data, remote), 'listening: update');
+      dirty = false;
+      // 勉強時間アプリにも英語として足す（まだ送っていない分だけ）
+      if (pendingStudy.length) {
+        const add = pendingStudy.slice();
+        await putJSON(gh.repo, 'records/study-log.json', remote => {
+          if (!remote) return null; // 勉強時間アプリをまだ使っていないときは何もしない
+          remote = JSON.parse(JSON.stringify(remote));
+          const ids = new Set(remote.sessions.map(s => s.id));
+          const subj = (remote.subjects || []).find(s => s.name === '英語') || {id:'eigo', name:'英語'};
+          add.forEach(x => { if (!ids.has(x.id)) remote.sessions.push(Object.assign({}, x, {subjectId: subj.id, subjectName: subj.name})); });
+          remote.sessions.sort((p, q) => p.start < q.start ? -1 : 1);
+          return remote;
+        }, 'study-log: listening');
+        pendingStudy = pendingStudy.filter(x => !add.includes(x));
+      }
+      saveLocal(); setSync('同期済み', 'ok');
+      if (!$('view-log').hidden) renderLog();
+    } catch(err) {
+      setSync(/40[13]/.test(String(err.message || err)) ? '鍵を確認してください' : 'この端末に保存中（あとで送ります）', 'warn');
+    } finally { syncing = false; if (again) { again = false; sync(); } }
+  }
+  function changed(){ dirty = true; saveLocal(); clearTimeout(syncTimer); syncTimer = setTimeout(sync, 800); }
+
+  // ---------- 音声の保存（IndexedDB） ----------
+  let dbp = null;
+  function idb(){ if (!dbp) dbp = new Promise((res, rej) => { const r = indexedDB.open('listen-audio', 1); r.onupgradeneeded = () => r.result.createObjectStore('audio', {keyPath:'id'}); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); return dbp; }
+  async function idbDo(mode, fn){ const d = await idb(); return new Promise((res, rej) => { const t = d.transaction('audio', mode); const req = fn(t.objectStore('audio')); t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error); }); }
+  const getAudio = id => idbDo('readonly', s => s.get(id)).then(x => x && x.blob);
+  const putAudio = (id, blob) => idbDo('readwrite', s => s.put({id, blob}));
+  let savedIds = new Set();
+  async function refreshSaved(){ try { savedIds = new Set(await idbDo('readonly', s => s.getAllKeys())); } catch(e) {} }
+  async function download(t){
+    const r = await api(as.audioRepo, '/contents/' + t.file.split('/').map(encodeURIComponent).join('/'), {headers:{'Accept':'application/vnd.github.raw'}});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const blob = await r.blob(); const b = blob.type ? blob : new Blob([blob], {type:'audio/mpeg'});
+    await putAudio(t.id, b); savedIds.add(t.id); return b;
+  }
+
+  // ---------- 音声の一覧 ----------
+  const counts = id => { const c = {}; data.log.filter(l => l.trackId === id && !l.deleted).forEach(l => { c[l.mode] = (c[l.mode] || 0) + 1; }); return c; };
+  function renderBooks(){
+    $('setupBanner').hidden = ghReady() && !!as.audioRepo;
+    if (!manifest) { if (ghReady() && as.audioRepo) $('books').innerHTML = '<p class="empty">音声の一覧を取ってきています…</p>'; else $('books').innerHTML = ''; return; }
+    $('books').innerHTML = manifest.books.map(b => {
+      const saved = b.tracks.filter(t => savedIds.has(t.id)).length;
+      return `<section class="ygroup"><h2>${esc(b.name)}</h2>
+        <div class="bookbar"><span class="note">${b.tracks.length}トラック・この端末に保存 ${saved}</span>${saved < b.tracks.length ? `<button type="button" class="tool sm" data-dlbook="${b.id}">全部この端末に保存</button>` : ''}</div>
+        <ol class="tracks">${b.tracks.map(t => { const c = counts(t.id);
+          return `<li><button type="button" class="trk${ui.track === t.id ? ' cur' : ''}" data-open="${t.id}"><span class="tn">${esc(t.title)}</span><span class="tm">${clock(t.dur)}${savedIds.has(t.id) ? '' : '・未保存'}</span>
+            <span class="tc">${MODES.map(m => `<i class="${c[m.id] ? 'on' : ''}" title="${m.name}">${m.name[0]}${c[m.id] ? c[m.id] : ''}</i>`).join('')}</span></button></li>`; }).join('')}</ol></section>`;
+    }).join('') + `<p class="note">右の「シ・オ・書・音」は、シャドーイング・オーバーラッピング・書き起こし・音読をした回数です。</p>`;
+  }
+  $('books').addEventListener('click', async e => {
+    const o = e.target.closest('[data-open]'); if (o) { openTrack(o.dataset.open); return; }
+    const d = e.target.closest('[data-dlbook]'); if (!d) return;
+    const b = manifest.books.find(x => x.id === d.dataset.dlbook); d.disabled = true;
+    let i = 0, fail = 0;
+    for (const t of b.tracks) { i++; if (savedIds.has(t.id)) continue; d.textContent = `保存中 ${i}/${b.tracks.length}`; try { await download(t); } catch(err) { fail++; } }
+    renderBooks(); if (fail) alertMsg(`${fail}トラックを保存できませんでした。電波を確認して、もう一度押してください。`);
+  });
+  function alertMsg(t){ $('listMsg').textContent = t; }
+
+  // ---------- 再生 ----------
+  const audio = new Audio(); audio.preload = 'auto';
+  let cur = null, segs = [], segI = 0, objUrl = null, gapUntil = 0, stopAt = null, playing = false;
+  try { audio.preservesPitch = true; audio.webkitPreservesPitch = true; } catch(e) {}
+  const segOf = t => { let i = segs.findIndex(s => t < s[1]); return i < 0 ? segs.length - 1 : i; };
+  async function openTrack(id){
+    const t = trackById(id); if (!t) return;
+    flushSession();
+    pauseAll(); cur = t; ui.track = id; saveUI();
+    segs = (tdata(id).segs || t.segs || [[0, t.dur]]).map(x => x.slice());
+    segI = 0; show('practice'); renderPractice();
+    $('pMsg').textContent = '音声を読み込んでいます…';
+    try {
+      let blob = await getAudio(id);
+      if (!blob) blob = await download(t);
+      if (objUrl) URL.revokeObjectURL(objUrl);
+      objUrl = URL.createObjectURL(blob); audio.src = objUrl; audio.playbackRate = ui.speed; audio.load();
+      $('pMsg').textContent = '';
+    } catch(e) { $('pMsg').textContent = `音声を取ってこられませんでした（${e.message}）。電波と「設定」を確認してください。`; }
+    renderBooks();
+  }
+  function setMode(m){
+    flushSession(); ui.mode = m; const d = MODE_DEF[m]; ui.opts = {stop: d.stop, loop: false, gap: d.gap}; saveUI();
+    if (m === 'dict') { $('optStop').checked = true; }
+    renderPractice();
+  }
+  function opts(){ return {stop: $('optStop').checked, loop: $('optLoop').checked, gap: +$('optGap').value}; }
+  function play(){ if (!audio.src) return; if (audio.currentTime >= cur.dur - 0.05) audio.currentTime = 0; segI = segOf(audio.currentTime); stopAt = null; gapUntil = 0; audio.play().catch(() => {}); }
+  function pauseAll(){ audio.pause(); gapUntil = 0; stopAt = null; renderPlay(); }
+  function playSeg(i){ if (!segs.length) return; segI = Math.max(0, Math.min(segs.length - 1, i)); audio.currentTime = segs[segI][0]; gapUntil = 0; stopAt = null; audio.play().catch(() => {}); render(); }
+  function seek(t){ audio.currentTime = Math.max(0, Math.min(cur.dur, t)); segI = segOf(audio.currentTime); render(); }
+  audio.addEventListener('play', () => { playing = true; startTick(); renderPlay(); if (recWanted()) startRec(); });
+  audio.addEventListener('pause', () => { playing = false; renderPlay(); if (rec && rec.withPlay && !gapUntil) stopRec(); });
+  audio.addEventListener('ended', () => { playing = false; renderPlay(); if (rec && rec.withPlay) stopRec(); if (ui.mode === 'shadow' || ui.mode === 'overlap') $('pMsg').textContent = '最後まで流れました。終わったら「この練習を記録する」を押してください。'; });
+  function startTick(){ if (tickOn) return; tickOn = true; requestAnimationFrame(tick); }
+  let tickOn = false, lastT = performance.now();
+  function tick(ts){
+    const dt = Math.min(1, (ts - lastT) / 1000); lastT = ts;
+    if (playing || gapUntil || (rec && rec.state === 'recording')) sess += dt;
+    if (gapUntil) {
+      if (Date.now() >= gapUntil) {
+        gapUntil = 0; const o = opts();
+        if (o.loop) playSeg(segI);
+        else if (!o.stop && segI + 1 < segs.length) playSeg(segI + 1);
+        else { renderPlay(); if (rec && rec.withPlay) stopRec(); }
+      }
+    } else if (playing && segs.length) {
+      const t = audio.currentTime, o = opts(), s = segs[segI];
+      if (s && t >= s[1] - 0.02) {
+        if (o.gap) { gapUntil = Date.now() + (s[1] - s[0]) * o.gap * 1000 / Math.max(0.5, audio.playbackRate); audio.pause(); } // 間のあいだも録音は続ける
+        else if (o.loop) playSeg(segI);
+        else if (o.stop) { audio.pause(); if (ui.mode === 'dict') $('dictText').focus({preventScroll:true}); }
+        else segI = Math.min(segs.length - 1, segI + 1);
+      } else if (s && t < s[0] - 0.3) segI = segOf(t);
+    }
+    render();
+    if (playing || gapUntil || (rec && rec.state === 'recording')) requestAnimationFrame(tick); else tickOn = false;
+  }
+  function renderPlay(){ $('playBtn').textContent = playing || gapUntil ? '止める' : '再生'; $('playBtn').setAttribute('aria-label', playing ? '止める' : '再生'); }
+  function render(){
+    if (!cur) return;
+    const t = audio.currentTime || 0;
+    $('tNow').textContent = clock(t); $('tDur').textContent = '/ ' + clock(cur.dur);
+    $('segNo').textContent = gapUntil ? `文 ${segI + 1} / ${segs.length}・間` : `文 ${segI + 1} / ${segs.length}`;
+    const p = t * 100 / cur.dur; $('barFill').style.width = p + '%'; $('barHead').style.left = p + '%';
+    $('sessNote').textContent = sess >= 1 ? `この練習 ${clock(sess)}` : '';
+    const lines = scriptLines();
+    if (lines.length === segs.length) document.querySelectorAll('#script p').forEach((x, i) => x.classList.toggle('now', i === segI));
+    if (lastSeg !== segI) { lastSeg = segI; if (ui.mode === 'dict') loadDict(); const n = document.querySelector('#script p.now'); if (n && playing) n.scrollIntoView({block:'nearest'}); renderSegList(); }
+  }
+  let lastSeg = -1;
+  document.querySelector('.ctl').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) control(b.dataset.c); });
+  document.querySelector('.ctl2').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) control(b.dataset.c); });
+  function control(c){
+    if (!cur) return;
+    if (c === 'play') {
+      if (playing || gapUntil) { pauseAll(); if (rec && rec.withPlay) stopRec(); }
+      else { const o = opts(), s = segs[segI]; if (o.stop || o.gap || o.loop) playSeg(audio.currentTime >= s[1] - 0.05 && !o.loop ? Math.min(segI + 1, segs.length - 1) : segI); else play(); }
+    }
+    if (c === 'prev') playSeg((audio.currentTime - segs[segI][0] > 1 && !playing) ? segI : segI - 1);
+    if (c === 'next') playSeg(segI + 1);
+    if (c === 'replay') playSeg(segI);
+    if (c === 'back') seek(audio.currentTime - 2);
+    if (c === 'fwd') seek(audio.currentTime + 2);
+    renderPlay();
+  }
+  $('bar').addEventListener('click', e => { if (!cur) return; const r = $('bar').getBoundingClientRect(); seek((e.clientX - r.left) / r.width * cur.dur); });
+  $('speed').addEventListener('input', () => { ui.speed = +$('speed').value; audio.playbackRate = ui.speed; $('speedV').textContent = ui.speed.toFixed(2); saveUI(); });
+  ['optStop', 'optLoop', 'optGap'].forEach(id => $(id).addEventListener('change', () => { ui.opts = opts(); saveUI(); }));
+
+  // ---------- 録音 ----------
+  let rec = null, recs = [], micStream = null;
+  const recWanted = () => !!(cur && $('recAuto') && $('recAuto').checked && !rec);
+  async function startRec(withPlay = true){
+    if (rec) return;
+    try {
+      if (!micStream) micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:false}});
+      const type = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+      const mr = new MediaRecorder(micStream, type ? {mimeType: type} : undefined); const chunks = [];
+      rec = {mr, chunks, withPlay, from: audio.currentTime, seg: segI, state: 'recording', t0: Date.now()};
+      mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      mr.onstop = () => { const len = (Date.now() - rec.t0) / 1000; if (len < 0.7) { rec = null; renderRec(); return; } const blob = new Blob(chunks, {type: mr.mimeType || type || 'audio/webm'}); recs.unshift({url: URL.createObjectURL(blob), from: rec.from, seg: rec.seg, len: (Date.now() - rec.t0) / 1000, at: new Date()}); if (recs.length > 6) { URL.revokeObjectURL(recs.pop().url); } rec = null; renderRec(); };
+      mr.start(); renderRec(); startTick();
+    } catch(e) { rec = null; $('recState').textContent = 'マイクを使えませんでした。ブラウザの設定でマイクを許可してください。'; }
+  }
+  function stopRec(){ if (rec && rec.state === 'recording') { rec.state = 'stopping'; rec.mr.stop(); } }
+  function renderRec(){
+    const on = rec && rec.state === 'recording';
+    $('recState').textContent = on ? '録音中' : '';
+    $('recState').dataset.on = on ? '1' : '';
+    $('recBtns').innerHTML = `<label class="check"><input type="checkbox" id="recAuto"${ui.recAuto ? ' checked' : ''}> 再生と一緒に録る</label>` +
+      (on ? '<button type="button" class="tool danger" data-r="stop">録音を止める</button>' : '<button type="button" class="tool" data-r="start">いまから録る</button>');
+    $('recList').innerHTML = recs.map((r, i) => `<li><span>${pad(r.at.getHours())}:${pad(r.at.getMinutes())}:${pad(r.at.getSeconds())}・${clock(r.len)}・文${r.seg + 1}から</span><span class="tools"><button type="button" class="tool sm" data-r="mine" data-i="${i}">自分の声</button><button type="button" class="tool sm" data-r="both" data-i="${i}">お手本と同時</button><button type="button" class="tool sm" data-r="after" data-i="${i}">お手本→自分</button></span></li>`).join('');
+    $('recAuto').addEventListener('change', () => { ui.recAuto = $('recAuto').checked; saveUI(); });
+  }
+  const mine = new Audio();
+  $('recBox').addEventListener('click', e => {
+    const b = e.target.closest('[data-r]'); if (!b) return; const r = recs[+b.dataset.i];
+    if (b.dataset.r === 'start') { pauseAll(); startRec(false); }
+    if (b.dataset.r === 'stop') stopRec();
+    if (b.dataset.r === 'mine') { pauseAll(); mine.src = r.url; mine.play(); }
+    if (b.dataset.r === 'both') { mine.src = r.url; audio.currentTime = r.from; const o = $('optStop').checked; $('optStop').checked = false; audio.play(); mine.play(); mine.onended = () => { audio.pause(); $('optStop').checked = o; }; }
+    if (b.dataset.r === 'after') { mine.src = r.url; playSeg(r.seg); const wait = () => { if (!playing && !gapUntil) { mine.play(); } else setTimeout(wait, 100); }; $('optStop').checked = true; setTimeout(wait, 300); }
+  });
+
+  // ---------- スクリプト ----------
+  const scriptLines = () => cur ? (tdata(cur.id).script || '').split('\n').map(x => x.trim()).filter(Boolean) : [];
+  function renderScript(){
+    const lines = scriptLines();
+    $('script').innerHTML = lines.length ? lines.map((l, i) => `<p data-i="${i}">${esc(l)}</p>`).join('') + (lines.length !== segs.length ? `<p class="note">スクリプトは${lines.length}行、文の区切りは${segs.length}こなので、いまの文は光りません。行の分け方か区切りを直すとそろいます。</p>` : '')
+      : '<p class="note">スクリプトはまだありません。「貼り付け・直す」から入れると、オーバーラッピングや音読で見ながら練習でき、書き起こしの答え合わせにも使えます。</p>';
+  }
+  $('script').addEventListener('click', e => { const p = e.target.closest('p[data-i]'); if (p && scriptLines().length === segs.length) playSeg(+p.dataset.i); });
+  $('scriptEdit').addEventListener('click', () => { $('scriptText').value = tdata(cur.id).script || ''; $('scriptEditor').hidden = false; $('script').hidden = true; });
+  $('scriptCancel').addEventListener('click', () => { $('scriptEditor').hidden = true; $('script').hidden = false; });
+  // 貼り付けたスクリプトを整える：行頭の番号やページ番号を消し、改行で切れた文をつないで1文1行にする
+  const ABBR = /\b(Mr|Mrs|Ms|Dr|St|Jr|Sr|Prof|Mt|No|vs|etc|e\.g|i\.e|U\.S|U\.K|a\.m|p\.m)\./gi;
+  function tidyScript(raw){
+    let lines = raw.replace(/\r/g, '').split('\n').map(l => l.replace(/[ \s]+/g, ' ').trim()).filter(Boolean);
+    lines = lines.map(l => l.replace(/^(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.．、:：)）]|\[\d{1,3}\]|[①-⑳]|(?:Q|No\.?)\s*\d{1,3}\s*[.:：)]?)\s*/i, '')).filter(l => l && !/^\d{1,4}$/.test(l));
+    let text = lines.join(' ').replace(/(\w)-\s+(\w)/g, '$1$2'); // 行末のハイフンで切れた語をつなぐ
+    text = text.replace(ABBR, m => m.replace(/\./g, '§'));
+    text = text.replace(/([.?!]["”’)]?)\s+(?=["“‘(]?[A-Z0-9])/g, '$1\n');
+    text = text.replace(/\s+((?:Man|Woman|Boy|Girl|Narrator|Speaker\s?\d?|[MWABQ])\s?:)\s/g, '\n$1 ');
+    return text.split('\n').map(s => s.replace(/§/g, '.').trim()).filter(Boolean);
+  }
+  // 文と音声の区切りをそろえる。文の長さ（語数）と区切りの長さ（秒）の割合が近くなる境目を選ぶ
+  function align(lines, sg){
+    const K = lines.length, N = sg.length;
+    const cw = [0]; lines.forEach(l => cw.push(cw[cw.length - 1] + Math.max(1, words(l).length)));
+    const ct = [0]; sg.forEach(s => ct.push(ct[ct.length - 1] + (s[1] - s[0])));
+    const fw = j => cw[j] / cw[K], ft = i => ct[i] / ct[N];
+    // 少ない側の境目（a=1..A-1）を、多い側の境目（0..B）に増えていく順で割り当てる
+    const A = Math.min(K, N), B = Math.max(K, N), fa = K <= N ? fw : ft, fb = K <= N ? ft : fw;
+    const INF = 1e9, dp = Array.from({length: A}, () => new Array(B + 1).fill(INF)), from = Array.from({length: A}, () => new Array(B + 1).fill(0));
+    dp[0][0] = 0;
+    for (let a = 1; a < A; a++) {
+      let best = INF, bi = 0;
+      for (let b = a; b <= B - (A - a); b++) {
+        if (dp[a - 1][b - 1] < best) { best = dp[a - 1][b - 1]; bi = b - 1; }
+        dp[a][b] = best + (fb(b) - fa(a)) ** 2; from[a][b] = bi;
+      }
+    }
+    let b = 0, bestV = INF; if (A === 1) b = 0; else for (let x = A - 1; x <= B - 1; x++) if (dp[A - 1][x] < bestV) { bestV = dp[A - 1][x]; b = x; }
+    const cut = new Array(A + 1); cut[0] = 0; cut[A] = B;
+    for (let a = A - 1; a >= 1; a--) { cut[a] = b; b = from[a][b]; }
+    if (K <= N) return {lines, segs: lines.map((_, j) => [sg[cut[j]][0], sg[cut[j + 1] - 1][1]])};
+    return {lines: sg.map((_, i) => lines.slice(cut[i], cut[i + 1]).join(' ')), segs: sg};
+  }
+  const countNote = () => { const n = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean).length; $('scriptCount').textContent = `いま ${n}行。音声の区切りは ${segs.length}こ。`; };
+  $('scriptText').addEventListener('input', countNote);
+  $('scriptEdit').addEventListener('click', countNote);
+  $('scriptTidy').addEventListener('click', () => { $('scriptText').value = tidyScript($('scriptText').value).join('\n'); countNote(); });
+  $('scriptSave').addEventListener('click', () => {
+    const lines = $('scriptText').value.split('\n').map(x => x.trim()).filter(Boolean); const d = tdata(cur.id);
+    let msg = '';
+    if (lines.length && lines.length !== segs.length) {
+      const r = align(lines, segs);
+      if (r.segs !== segs) { segs = r.segs.map(x => x.slice()); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); renderTicks(); renderSegList(); msg = `文の数（${lines.length}）に合わせて、音声の区切りを${segs.length}こにそろえました。`; }
+      else msg = `音声の区切り（${segs.length}こ）より文が多いので、近い文どうしを1行にまとめました。`;
+      d.script = r.lines.join('\n');
+    } else d.script = lines.join('\n');
+    d.scriptAt = now(); changed(); $('scriptEditor').hidden = true; $('script').hidden = false; renderScript();
+    $('pMsg').textContent = msg ? msg + 'ずれていたら、スクリプトの行を押して聞きながら「文の区切りを直す」で直してください。' : '';
+  });
+
+  // ---------- 書き起こし ----------
+  function loadDict(){ const d = tdata(cur.id).dict || {}; $('dictText').value = d[segI] || ''; $('dictNo').textContent = `文 ${segI + 1} / ${segs.length}`; $('dictDiff').hidden = true; }
+  let dictTimer = 0;
+  $('dictText').addEventListener('input', () => { clearTimeout(dictTimer); const i = segI, v = $('dictText').value; dictTimer = setTimeout(() => { const d = tdata(cur.id); d.dict = Object.assign({}, d.dict, {[i]: v}); d.dictAt = now(); changed(); renderDictAll(); }, 500); });
+  const words = s => s.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9'\s-]/g, ' ').split(/\s+/).filter(Boolean);
+  function diffHTML(mineS, ans){
+    const a = words(ans), b = words(mineS), n = a.length, m = b.length;
+    const L = Array.from({length: n + 1}, () => new Array(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const out = []; let i = 0, j = 0;
+    while (i < n || j < m) {
+      if (i < n && j < m && a[i] === b[j]) { out.push(`<span class="ok">${esc(a[i])}</span>`); i++; j++; }
+      else if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])) { out.push(`<del>${esc(b[j])}</del>`); j++; }
+      else { out.push(`<ins>${esc(a[i])}</ins>`); i++; }
+    }
+    return {html: out.join(' '), score: n ? Math.round(L[0][0] * 100 / n) : 0};
+  }
+  $('dictCheck').addEventListener('click', () => {
+    const lines = scriptLines();
+    if (lines.length !== segs.length) { $('dictDiff').hidden = false; $('dictDiff').innerHTML = '<p class="note">答え合わせには、文の区切りと同じ行数のスクリプトが必要です。本のスクリプトと見比べてください。</p>'; return; }
+    const r = diffHTML($('dictText').value, lines[segI]);
+    $('dictDiff').hidden = false; $('dictDiff').innerHTML = `<p><b>${r.score}%</b> 合っています</p><p class="dw">${r.html}</p><p class="note">緑は合っていた語、赤の下線は聞き取れなかった語、取り消し線は余分に書いた語です。</p>`;
+  });
+  $('dictNext').addEventListener('click', () => playSeg(segI + 1));
+  $('dictReplay').addEventListener('click', () => playSeg(segI));
+  $('dictPrev').addEventListener('click', () => playSeg(segI - 1));
+  function renderDictAll(){ const d = tdata(cur.id).dict || {}; $('dictAll').innerHTML = segs.map((_, i) => `<li>${d[i] ? esc(d[i]) : '<span class="note">（まだ）</span>'}</li>`).join(''); }
+
+  // ---------- 区切りの直し ----------
+  function saveSegs(){ const d = tdata(cur.id); d.segs = segs.map(s => [Math.round(s[0] * 100) / 100, Math.round(s[1] * 100) / 100]); d.segsAt = now(); changed(); renderSegList(); renderTicks(); renderScript(); }
+  function renderSegList(){ if (!$('segEditBox').open) return; $('segList').innerHTML = segs.map((s, i) => `<li class="${i === segI ? 'now' : ''}"><button type="button" class="tool sm" data-seg="${i}">${clock(s[0])}〜${clock(s[1])}（${(s[1] - s[0]).toFixed(1)}秒）</button></li>`).join(''); }
+  $('segEditBox').addEventListener('toggle', renderSegList);
+  $('segList').addEventListener('click', e => { const b = e.target.closest('[data-seg]'); if (b) playSeg(+b.dataset.seg); });
+  $('segSplit').addEventListener('click', () => { const t = audio.currentTime, i = segOf(t), s = segs[i]; if (t - s[0] < 0.5 || s[1] - t < 0.5) { $('pMsg').textContent = '文のはじめか終わりに近すぎて区切れません。'; return; } segs.splice(i, 1, [s[0], t], [t, s[1]]); saveSegs(); });
+  $('segMerge').addEventListener('click', () => { if (segI >= segs.length - 1) return; segs.splice(segI, 2, [segs[segI][0], segs[segI + 1][1]]); saveSegs(); });
+  $('segReset').addEventListener('click', e => { const b = e.target; if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'もう一度押すと戻します'; return; } b.dataset.armed = ''; b.textContent = '自動の区切りに戻す'; segs = cur.segs.map(x => x.slice()); const d = tdata(cur.id); d.segs = null; d.segsAt = now(); changed(); renderSegList(); renderTicks(); renderScript(); });
+  function renderTicks(){ $('segTicks').innerHTML = segs.slice(1).map(s => `<i style="left:${s[0] * 100 / cur.dur}%"></i>`).join(''); }
+
+  // ---------- 練習の記録 ----------
+  let sess = 0, sessStart = null;
+  function flushSession(force){
+    if (!cur || sess < (force ? 1 : 30)) { sess = 0; return false; }
+    const sec = Math.round(sess), st = sessStart || new Date(Date.now() - sec * 1000).toISOString();
+    const l = {id: 'l' + uid(), trackId: cur.id, title: cur.title, mode: ui.mode, sec, start: st, date: dayKey(Date.parse(st)), updatedAt: now()};
+    data.log.push(l);
+    if (as.toStudyLog) pendingStudy.push({id: 'listen-' + l.id, start: st, end: new Date(Date.parse(st) + sec * 1000).toISOString(), sec, kind: 'sw', memo: `リスニング ${MODES.find(m => m.id === ui.mode).name}：${cur.title}`, updatedAt: now()});
+    sess = 0; sessStart = null; changed(); return l;
+  }
+  $('doneBtn').addEventListener('click', () => {
+    pauseAll(); stopRec();
+    const l = flushSession(true);
+    $('pMsg').textContent = l ? `${MODES.find(m => m.id === l.mode).name} ${dur(l.sec)}を記録しました。` : 'まだ練習の時間がありません。';
+    renderBooks();
+  });
+  audio.addEventListener('play', () => { if (!sessStart) sessStart = now(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (sess >= 30) flushSession(); saveLocal(); } });
+
+  // ---------- 練習の画面 ----------
+  function renderPractice(){
+    $('noTrack').hidden = !!cur; $('practice').hidden = !cur; if (!cur) return;
+    $('tBook').textContent = cur.book; $('tTitle').textContent = cur.title;
+    $('modes').innerHTML = MODES.map(m => `<button type="button" class="chip" role="radio" aria-checked="${m.id === ui.mode}" data-mode="${m.id}">${m.name}</button>`).join('');
+    $('modeNote').textContent = MODES.find(m => m.id === ui.mode).note;
+    const o = Object.assign({}, MODE_DEF[ui.mode], ui.opts || {});
+    $('optStop').checked = !!o.stop; $('optLoop').checked = !!o.loop; $('optGap').value = String(o.gap || 0);
+    if (ui.recAuto === undefined) ui.recAuto = MODE_DEF[ui.mode].rec && ui.mode !== 'read';
+    $('speed').value = ui.speed; $('speedV').textContent = (+ui.speed).toFixed(2);
+    $('dictBox').hidden = ui.mode !== 'dict'; $('recBox').hidden = ui.mode === 'dict';
+    $('scriptBox').classList.toggle('big', ui.mode === 'overlap' || ui.mode === 'read');
+    $('scriptBox').hidden = false;
+    renderScript(); renderTicks(); renderRec(); renderPlay(); lastSeg = -1; render();
+    if (ui.mode === 'dict') { loadDict(); renderDictAll(); }
+  }
+  $('modes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+
+  // PCのキー操作
+  document.addEventListener('keydown', e => {
+    if (!cur || $('view-practice').hidden) return;
+    const typing = /^(TEXTAREA|INPUT|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+    if (e.ctrlKey && e.code === 'Space') { e.preventDefault(); control('replay'); return; }
+    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); control('next'); return; }
+    if (e.ctrlKey && e.key === 'ArrowLeft') { e.preventDefault(); control('back'); return; }
+    if (e.ctrlKey && e.key === 'ArrowRight') { e.preventDefault(); control('fwd'); return; }
+    if (typing) return;
+    const k = {' ': 'play', ArrowLeft: 'back', ArrowRight: 'fwd', ArrowUp: 'prev', ArrowDown: 'next', r: 'replay', R: 'replay'}[e.key];
+    if (k) { e.preventDefault(); control(k); }
+  });
+
+  // ---------- 記録の画面 ----------
+  function renderLog(){
+    const ls = data.log.filter(l => !l.deleted); const today = dayKey(Date.now());
+    const days = Array.from({length: 7}, (_, i) => dayKey(Date.now() - i * 86400000));
+    const week = ls.filter(l => days.includes(l.date)), tot = week.reduce((t, l) => t + l.sec, 0);
+    const byMode = MODES.map(m => [m, week.filter(l => l.mode === m.id).reduce((t, l) => t + l.sec, 0)]);
+    $('logSum').innerHTML = `<div class="chead"><span>直近7日のリスニング</span><span class="clast">${dur(tot)}</span></div>
+      <ul class="plist">${byMode.map(([m, s]) => `<li><span class="pn">${m.name}</span><span class="pt"><i style="--r:${tot ? s * 100 / tot : 0}%"></i></span><span class="pv">${dur(s)}</span></li>`).join('')}</ul>
+      <p class="note">今日 ${dur(ls.filter(l => l.date === today).reduce((t, l) => t + l.sec, 0))}。30秒より短い練習は残しません。</p>`;
+    const ts = allTracks();
+    $('logTracks').innerHTML = `<div class="chead"><span>トラックごとの回数</span></div><div class="tscroll"><table class="ttable"><thead><tr><th></th>${MODES.map(m => `<th>${m.name[0]}</th>`).join('')}</tr></thead><tbody>${ts.map(t => { const c = counts(t.id); return `<tr><th>${esc(t.title)}</th>${MODES.map(m => `<td${c[m.id] ? '' : ' class="na"'}>${c[m.id] || '・'}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div>`;
+    $('logRecent').innerHTML = `<div class="chead"><span>最近の練習</span></div>` + (ls.length ? `<ol class="recent">${ls.slice(-30).reverse().map(l => `<li><span>${l.date.slice(5).replace('-', '/')} ${esc(l.title || l.trackId)}</span><span>${MODES.find(m => m.id === l.mode)?.name || l.mode}・${dur(l.sec)}</span></li>`).join('')}</ol>` : '<p class="note">まだ記録がありません。</p>');
+  }
+
+  // ---------- 設定 ----------
+  $('owner').value = gh.owner || 'visby314'; $('repo').value = gh.repo || 'study-inbox'; $('token').value = gh.token; $('audioRepo').value = as.audioRepo; $('toStudyLog').checked = as.toStudyLog;
+  $('toStudyLog').addEventListener('change', () => { as.toStudyLog = $('toStudyLog').checked; try { localStorage.setItem(LS_A, JSON.stringify(as)); } catch(e) {} });
+  $('ghForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    gh = {owner: $('owner').value.trim(), repo: $('repo').value.trim(), token: $('token').value.trim()}; as.audioRepo = $('audioRepo').value.trim();
+    try { localStorage.setItem(LS_GH, JSON.stringify(gh)); localStorage.setItem(LS_A, JSON.stringify(as)); } catch(err) {}
+    const m = $('ghMsg');
+    if (!gh.owner || !gh.token || !as.audioRepo || !gh.repo) { m.textContent = '4つとも入れてください。'; return; }
+    m.textContent = '確かめています…';
+    try {
+      for (const [repo, label] of [[as.audioRepo, '音声'], [gh.repo, '記録']]) {
+        const r = await api(repo, '');
+        if (r.status === 401) { m.textContent = '鍵が正しくないか、期限が切れています。'; return; }
+        if (r.status === 404) { m.textContent = `${label}のリポジトリが見つかりません。名前と、鍵にこのリポジトリの許可があるかを確認してください。`; return; }
+        if (!r.ok) { m.textContent = 'GitHubにつながりませんでした（' + r.status + '）。'; return; }
+        const j = await r.json(); if (!j.private) { m.textContent = `${label}のリポジトリが公開になっています。非公開にしてください。`; return; }
+      }
+      m.textContent = 'つながりました。'; manifest = null; await loadManifest(); sync();
+    } catch(err) { m.textContent = 'GitHubにつながりませんでした。電波を確認してください。'; }
+  });
+  async function renderStore(){
+    await refreshSaved();
+    let est = '';
+    try { if (navigator.storage && navigator.storage.estimate) { const q = await navigator.storage.estimate(); est = `（このアプリ全体で約${Math.round(q.usage / 1e6)}MB）`; } } catch(e) {}
+    $('storeNote').textContent = `${savedIds.size}トラックを保存しています${est}。`;
+  }
+  $('clearAudio').addEventListener('click', async e => {
+    const b = e.target; if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'もう一度押すと消します'; return; }
+    await idbDo('readwrite', s => s.clear()); b.dataset.armed = ''; b.textContent = '保存した音声を全部消す'; renderStore(); renderBooks();
+  });
+
+  // ---------- 画面 ----------
+  function show(v){
+    document.querySelectorAll('.segbtn').forEach(x => x.setAttribute('aria-selected', String(x.dataset.view === v)));
+    document.querySelectorAll('.view').forEach(x => x.hidden = x.id !== 'view-' + v);
+    document.body.classList.toggle('wide', v === 'practice');
+    if (v === 'list') renderBooks(); if (v === 'log') renderLog(); if (v === 'settings') renderStore(); if (v === 'practice') renderPractice();
+  }
+  document.querySelector('.seg').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) show(b.dataset.view); });
+
+  (async () => {
+    await refreshSaved(); renderBooks();
+    if (ui.track && trackById(ui.track)) { const id = ui.track; ui.track = null; await openTrack(id); show('list'); }
+    await loadManifest(); sync();
+  })();
+  window.addEventListener('online', sync);
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
