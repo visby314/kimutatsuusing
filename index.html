@@ -364,6 +364,20 @@ body.reading{overflow:hidden}
 .rsw{padding:8px 0;border-bottom:1px solid var(--rule-soft);max-width:900px;width:100%;margin:0 auto}
 .rsw .rb{padding:8px 14px}
 .rinfo b{font-size:1.05rem}
+/* 大きい画面の操作 */
+.sbig{font-size:.95rem;padding:11px}
+.rprog{max-width:900px;width:100%;margin:0 auto;padding:8px 0 2px}
+.rprog .bar{height:10px}
+#rFill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent-soft);border-radius:999px}
+#rHead{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--accent);border-radius:2px}
+.rbody{padding-top:10vh;padding-bottom:30vh}
+.rctl{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--rule);padding-top:8px;max-width:900px;width:100%;margin:0 auto}
+.rctl .rbar{display:grid;grid-template-columns:1fr .8fr 1.3fr .8fr 1fr;gap:6px;border:0;padding:0;max-width:none}
+.rctl .rbar .rb{padding:12px 2px}
+.rrow{display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap}
+.rrow .rb{padding:7px 12px;font-size:.8rem}
+.rrow .spd input{width:120px}
+.rrec.on{color:#fff;background:var(--bad);border-color:var(--bad)}
 </style>
 </head>
 <body>
@@ -398,6 +412,7 @@ body.reading{overflow:hidden}
           <div class="ttl"><span class="tbook" id="tBook"></span><b id="tTitle"></b></div>
           <div class="tsw"><button type="button" class="tool sm" data-tmove="-1" aria-label="前のトラック">前</button><select class="tsel" aria-label="トラックを選ぶ"></select><button type="button" class="tool sm" data-tmove="1" aria-label="次のトラック">次</button></div>
           <div class="chips" id="modes" role="radiogroup" aria-label="練習のやり方"></div>
+          <button type="button" class="primary sbig" data-reader>スクリプトを大きく見ながら練習する</button>
           <p class="note" id="modeNote"></p>
 
           <div class="pl">
@@ -506,15 +521,28 @@ body.reading{overflow:hidden}
 <div class="reader" id="reader" hidden role="dialog" aria-label="スクリプト">
   <div class="rtop">
     <div class="rinfo"><b id="rTitle"></b><span id="rSeg"></span></div>
-    <div class="rtools"><button type="button" class="rb" data-rs="-1" aria-label="字を小さく">A−</button><button type="button" class="rb" data-rs="1" aria-label="字を大きく">A＋</button><button type="button" class="rb" id="rClose">閉じる</button></div>
+    <div class="rtools"><button type="button" class="rb" data-rs="-1" aria-label="字を小さく">A−</button><button type="button" class="rb" data-rs="1" aria-label="字を大きく">A＋</button><button type="button" class="rb" id="rClose">戻る</button></div>
   </div>
+  <div class="rprog"><div class="bar" id="rBar" role="slider" aria-label="再生位置" tabindex="0"><i id="rFill"></i><b id="rHead"></b></div></div>
   <div class="tsw rsw"><button type="button" class="rb" data-tmove="-1" aria-label="前のトラック">前</button><select class="tsel" aria-label="トラックを選ぶ"></select><button type="button" class="rb" data-tmove="1" aria-label="次のトラック">次</button></div>
   <div class="rbody" id="rBody"></div>
-  <div class="rbar">
-    <button type="button" class="rb" data-c="prev">前の文</button>
-    <button type="button" class="rb" data-c="replay">もう一度</button>
-    <button type="button" class="rb play" data-c="play" id="rPlay">再生</button>
-    <button type="button" class="rb" data-c="next">次の文</button>
+  <div class="rctl">
+    <div class="rbar">
+      <button type="button" class="rb" data-c="prev">前の文</button>
+      <button type="button" class="rb" data-c="back">−2秒</button>
+      <button type="button" class="rb play" data-c="play" id="rPlay">再生</button>
+      <button type="button" class="rb" data-c="fwd">＋2秒</button>
+      <button type="button" class="rb" data-c="next">次の文</button>
+    </div>
+    <div class="rrow">
+      <button type="button" class="rb" data-c="replay">この文をもう一度</button>
+      <label class="spd">速さ <input type="range" id="rSpeed" min="0.5" max="1.5" step="0.05"> <b id="rSpeedV">1.00</b></label>
+    </div>
+    <div class="rrow">
+      <label class="check"><input type="checkbox" id="rStop"> 1文ずつ止める</label>
+      <label class="check"><input type="checkbox" id="rLoop"> くり返す</label>
+      <button type="button" class="rb rrec" id="rRec">録音する</button>
+    </div>
   </div>
 </div>
 
@@ -770,7 +798,14 @@ body.reading{overflow:hidden}
     renderPlay();
   }
   $('bar').addEventListener('click', e => { if (!cur) return; const r = $('bar').getBoundingClientRect(); seek((e.clientX - r.left) / r.width * cur.dur); });
-  $('speed').addEventListener('input', () => { ui.speed = +$('speed').value; audio.playbackRate = ui.speed; $('speedV').textContent = ui.speed.toFixed(2); saveUI(); });
+  function setSpeed(v){ ui.speed = v; audio.playbackRate = v; $('speed').value = v; $('rSpeed').value = v; $('speedV').textContent = v.toFixed(2); $('rSpeedV').textContent = v.toFixed(2); saveUI(); }
+  $('speed').addEventListener('input', () => setSpeed(+$('speed').value));
+  $('rSpeed').addEventListener('input', () => setSpeed(+$('rSpeed').value));
+  // 大きい画面の「1文ずつ止める」「くり返す」は練習画面の設定と同じものを動かす
+  [['rStop', 'optStop'], ['rLoop', 'optLoop']].forEach(([a, b]) => $(a).addEventListener('change', () => { $(b).checked = $(a).checked; ui.opts = opts(); saveUI(); }));
+  $('rRec').addEventListener('click', () => { if (rec && rec.state === 'recording') stopRec(); else { startRec(false); } setTimeout(renderRRec, 300); });
+  function renderRRec(){ const on = rec && rec.state === 'recording'; $('rRec').textContent = on ? '録音を止める' : '録音する'; $('rRec').classList.toggle('on', !!on); }
+  $('rBar').addEventListener('click', e => { if (!cur) return; const r = $('rBar').getBoundingClientRect(); seek((e.clientX - r.left) / r.width * cur.dur); });
   ['optStop', 'optLoop', 'optGap'].forEach(id => $(id).addEventListener('change', () => { ui.opts = opts(); saveUI(); }));
 
   // ---------- 録音 ----------
@@ -789,7 +824,7 @@ body.reading{overflow:hidden}
     } catch(e) { rec = null; $('recState').textContent = 'マイクを使えませんでした。ブラウザの設定でマイクを許可してください。'; }
   }
   function stopRec(){ if (rec && rec.state === 'recording') { rec.state = 'stopping'; rec.mr.stop(); } }
-  function renderRec(){
+  function renderRec(){ renderRRec();
     const on = rec && rec.state === 'recording';
     $('recState').textContent = on ? '録音中' : '';
     $('recState').dataset.on = on ? '1' : '';
@@ -1047,7 +1082,7 @@ body.reading{overflow:hidden}
   function openReader(){
     if (!cur) { show('list'); $('listMsg').textContent = '先に練習するトラックを選んでください。'; return; }
     if (!scriptLines().length) { show('practice'); $('pMsg').textContent = 'スクリプトがまだありません。「貼り付け・直す」から入れてください。'; return; }
-    $('reader').hidden = false; document.body.classList.add('reading'); renderReader(); centerReader(true);
+    $('reader').hidden = false; document.body.classList.add('reading'); $('rSpeed').value = ui.speed; $('rSpeedV').textContent = (+ui.speed).toFixed(2); $('rStop').checked = $('optStop').checked; $('rLoop').checked = $('optLoop').checked; renderRRec(); renderReader(); centerReader(true);
   }
   function closeReader(){ $('reader').hidden = true; document.body.classList.remove('reading'); }
   function renderReader(){
@@ -1060,7 +1095,8 @@ body.reading{overflow:hidden}
   }
   function renderReaderNow(){
     if ($('reader').hidden) return;
-    $('rSeg').textContent = `文 ${segI + 1} / ${segs.length}・${clock(audio.currentTime || 0)}`;
+    $('rSeg').textContent = `文 ${segI + 1} / ${segs.length}・${clock(audio.currentTime || 0)} / ${clock(cur.dur)}`;
+    const pc = (audio.currentTime || 0) * 100 / cur.dur; $('rFill').style.width = pc + '%'; $('rHead').style.left = pc + '%';
     if (scriptLines().length === segs.length) $('rBody').querySelectorAll('p[data-i]').forEach((x, i) => x.classList.toggle('now', i === segI));
   }
   function centerReader(instant){
