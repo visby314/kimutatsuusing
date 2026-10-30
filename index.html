@@ -613,7 +613,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
     const d = e.target.closest('[data-dlbook]'); if (!d) return;
     const b = manifest.books.find(x => x.id === d.dataset.dlbook); d.disabled = true;
     let i = 0, fail = 0;
-    for (const t of b.tracks) { i++; if (savedIds.has(t.id)) continue; d.textContent = `保存中 ${i}/${b.tracks.length}`; try { await download(t); } catch(err) { fail++; } }
+    for (const t of b.tracks) { i++; if (savedIds.has(t.id)) continue; d.textContent = `保存中 ${i}/${b.tracks.length}`; try { await download(t); const n = d.closest('.bookbar').querySelector('.note'); if (n) n.textContent = `${b.tracks.length}トラック・この端末に保存 ${b.tracks.filter(x => savedIds.has(x.id)).length}`; const tm = document.querySelector(`[data-open="${t.id}"] .tm`); if (tm) tm.textContent = clock(t.dur); } catch(err) { fail++; } }
     renderBooks(); if (fail) alertMsg(`${fail}トラックを保存できませんでした。電波を確認して、もう一度押してください。`);
   });
   function alertMsg(t){ $('listMsg').textContent = t; }
