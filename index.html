@@ -358,6 +358,12 @@ body.reading{overflow:hidden}
 .rbar{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr;gap:6px;border-top:1px solid var(--rule);padding-top:8px;max-width:900px;width:100%;margin:0 auto}
 .rbar .rb{padding:13px 4px}
 @media (prefers-reduced-motion:reduce){.rbody p{transition:none}}
+/* トラックの切り替え */
+.tsw{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
+.tsel{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
+.rsw{padding:8px 0;border-bottom:1px solid var(--rule-soft);max-width:900px;width:100%;margin:0 auto}
+.rsw .rb{padding:8px 14px}
+.rinfo b{font-size:1.05rem}
 </style>
 </head>
 <body>
@@ -390,6 +396,7 @@ body.reading{overflow:hidden}
       <div class="pcol">
         <div class="card">
           <div class="ttl"><span class="tbook" id="tBook"></span><b id="tTitle"></b></div>
+          <div class="tsw"><button type="button" class="tool sm" data-tmove="-1" aria-label="前のトラック">前</button><select class="tsel" aria-label="トラックを選ぶ"></select><button type="button" class="tool sm" data-tmove="1" aria-label="次のトラック">次</button></div>
           <div class="chips" id="modes" role="radiogroup" aria-label="練習のやり方"></div>
           <p class="note" id="modeNote"></p>
 
@@ -501,6 +508,7 @@ body.reading{overflow:hidden}
     <div class="rinfo"><b id="rTitle"></b><span id="rSeg"></span></div>
     <div class="rtools"><button type="button" class="rb" data-rs="-1" aria-label="字を小さく">A−</button><button type="button" class="rb" data-rs="1" aria-label="字を大きく">A＋</button><button type="button" class="rb" id="rClose">閉じる</button></div>
   </div>
+  <div class="tsw rsw"><button type="button" class="rb" data-tmove="-1" aria-label="前のトラック">前</button><select class="tsel" aria-label="トラックを選ぶ"></select><button type="button" class="rb" data-tmove="1" aria-label="次のトラック">次</button></div>
   <div class="rbody" id="rBody"></div>
   <div class="rbar">
     <button type="button" class="rb" data-c="prev">前の文</button>
@@ -679,12 +687,12 @@ body.reading{overflow:hidden}
   let cur = null, segs = [], segI = 0, objUrl = null, gapUntil = 0, stopAt = null, playing = false;
   try { audio.preservesPitch = true; audio.webkitPreservesPitch = true; } catch(e) {}
   const segOf = t => { let i = segs.findIndex(s => t < s[1]); return i < 0 ? segs.length - 1 : i; };
-  async function openTrack(id){
+  async function openTrack(id, keepReader){
     const t = trackById(id); if (!t) return;
     flushSession();
     pauseAll(); cur = t; ui.track = id; saveUI();
     segs = (tdata(id).segs || t.segs || [[0, t.dur]]).map(x => x.slice());
-    segI = 0; show('practice'); renderPractice();
+    segI = 0; show('practice'); renderPractice(); if (keepReader) openReader();
     $('pMsg').textContent = '音声を読み込んでいます…';
     try {
       let blob = await getAudio(id);
@@ -960,7 +968,7 @@ body.reading{overflow:hidden}
   // ---------- 練習の画面 ----------
   function renderPractice(){
     $('noTrack').hidden = !!cur; $('practice').hidden = !cur; if (!cur) return;
-    $('tBook').textContent = cur.book; $('tTitle').textContent = cur.title;
+    $('tBook').textContent = cur.book; $('tTitle').textContent = cur.title; fillTrackSelects();
     $('modes').innerHTML = MODES.map(m => `<button type="button" class="chip" role="radio" aria-checked="${m.id === ui.mode}" data-mode="${m.id}">${m.name}</button>`).join('');
     $('modeNote').textContent = MODES.find(m => m.id === ui.mode).note;
     const o = Object.assign({}, MODE_DEF[ui.mode], ui.opts || {});
@@ -1044,7 +1052,7 @@ body.reading{overflow:hidden}
   function closeReader(){ $('reader').hidden = true; document.body.classList.remove('reading'); }
   function renderReader(){
     const lines = scriptLines(), match = lines.length === segs.length;
-    $('rTitle').textContent = cur.title;
+    $('rTitle').textContent = cur.title; fillTrackSelects();
     $('rBody').style.fontSize = (ui.rsize || 1.7) + 'rem';
     $('rBody').innerHTML = lines.map((l, i) => `<p data-i="${i}" class="${l === SKIP ? 'skip' : ''}${match && i === segI ? ' now' : ''}">${esc(l)}</p>`).join('') + (match ? '' : '<p class="rnote">スクリプトの行と文の区切りがそろっていないので、いまの文は光りません。</p>');
     $('rBody').classList.toggle('match', match);
@@ -1065,6 +1073,19 @@ body.reading{overflow:hidden}
   document.querySelector('.rtools').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if (!b) return; ui.rsize = Math.max(1, Math.min(3.2, (ui.rsize || 1.7) + 0.2 * +b.dataset.rs)); saveUI(); $('rBody').style.fontSize = ui.rsize + 'rem'; centerReader(true); });
   $('rBody').addEventListener('click', e => { const p = e.target.closest('p[data-i]'); if (p && scriptLines().length === segs.length) playSeg(+p.dataset.i); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('reader').hidden) closeReader(); });
+
+  // トラックの切り替え（練習画面と大きい画面の両方）
+  function fillTrackSelects(){
+    if (!manifest || !cur) return;
+    const html = manifest.books.map(b => `<optgroup label="${esc(b.name)}">${b.tracks.map(t => `<option value="${t.id}"${t.id === cur.id ? ' selected' : ''}>${esc(t.title)}${tdata(t.id).script ? '' : '（スクリプトなし）'}</option>`).join('')}</optgroup>`).join('');
+    document.querySelectorAll('.tsel').forEach(s => { s.innerHTML = html; s.value = cur.id; });
+    const all = allTracks(), i = all.findIndex(t => t.id === cur.id);
+    document.querySelectorAll('[data-tmove="-1"]').forEach(b => b.disabled = i <= 0);
+    document.querySelectorAll('[data-tmove="1"]').forEach(b => b.disabled = i >= all.length - 1);
+  }
+  async function moveTrack(id){ const inReader = !$('reader').hidden, has = !!tdata(id).script; pauseAll(); stopRec(); await openTrack(id, inReader && has); if (inReader && !has) $('pMsg').textContent = 'このトラックはスクリプトがまだないので、練習の画面に戻りました。'; }
+  document.querySelectorAll('.tsel').forEach(s => s.addEventListener('change', () => moveTrack(s.value)));
+  document.querySelectorAll('[data-tmove]').forEach(b => b.addEventListener('click', () => { const all = allTracks(), i = all.findIndex(t => t.id === cur.id) + +b.dataset.tmove; if (all[i]) moveTrack(all[i].id); }));
 
   function show(v){
     closeReader();
