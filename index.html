@@ -464,7 +464,7 @@ ol.recent li{display:flex;justify-content:space-between;gap:8px;border-bottom:1p
   const pad = n => String(n).padStart(2, '0');
   const clock = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
   const dayKey = ms => { const d = new Date(ms - 4 * 3600000); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
-  const dur = sec => { const m = Math.round(sec / 60); const h = Math.floor(m / 60); return h ? `${h}時間${m % 60 ? (m % 60) + '分' : ''}` : `${m}分`; };
+  const dur = sec => { if (sec > 0 && sec < 60) return '1分未満'; const m = Math.round(sec / 60); const h = Math.floor(m / 60); return h ? `${h}時間${m % 60 ? (m % 60) + '分' : ''}` : `${m}分`; };
 
   const MODES = [
     {id:'shadow', name:'シャドーイング', note:'お手本を聞きながら、少し遅れて同じように言う。テキストは見ない。慣れないうちは速さを0.8くらいに落とす。'},
